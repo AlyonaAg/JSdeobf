@@ -20,7 +20,7 @@ class Parser:
 
     def __parserFunc(self, script):
         start = re.search(r'(\{)', script).start()
-        finish = start + self.__searchForBoundaries(script[start + 1:], ['{', '}']) + 1
+        finish = start + self.__searchForBoundaries(script[start + 1:], '[{]', '[}]') + 1
         declaration = re.match(r'function ([a-zA-Z_]\w+)\((.*?)\)', script)
 
         name = declaration.group(1)
@@ -56,7 +56,8 @@ class Parser:
         return BaseClass.Declaration(declaration_type, body, var), finish
 
     def __parserCycleControl(self, script):
-        cycle_control_type = BaseClass.TypeCycleControl.CONTINUE if script.startswith('continue') else BaseClass.TypeCycleControl.BREAK
+        cycle_control_type = BaseClass.TypeCycleControl.CONTINUE if script.startswith(
+            'continue') else BaseClass.TypeCycleControl.BREAK
         finish = self.__searchEndOfCommand(script) + 1
 
         # print(script[:finish], cycle_control_type)
@@ -71,7 +72,7 @@ class Parser:
     def __parserWhile(self, script):
         start_conditions = re.search(r'(\()', script).start()
         finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions + 1:],
-                                                                          ['(', ')']) + 1
+                                                                          '[(]', '[)]') + 1
         print('WHILE CONDITIONS:', script[start_conditions:])
         return None, 0
 
@@ -99,14 +100,15 @@ class Parser:
         pass
 
     @staticmethod
-    def __searchForBoundaries(script, bracket):
+    def __searchForBoundaries(script, start_bound, finish_bound):
+        a = r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(' + start_bound + ')|(' + finish_bound + ')'
         cnt_bracket, shift = 1, 0
         while shift < len(script) and cnt_bracket:
-            if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(' + bracket[0] + ')|(' + bracket[1] + ')',
+            if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(' + start_bound + ')|(' + finish_bound + ')',
                                   script[shift:])) is not None:
-                if match.group() == bracket[0]:
+                if match.group() == start_bound[1]:
                     cnt_bracket += 1
-                elif match.group() == bracket[1]:
+                elif match.group() == finish_bound[1]:
                     cnt_bracket -= 1
                 else:
                     shift += match.end() - 1
