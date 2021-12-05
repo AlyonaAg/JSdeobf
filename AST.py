@@ -20,6 +20,8 @@ class AST:
                 print(AST.name, ': ', AST.body)
             elif isinstance(AST, BaseClass.Declaration):
                 print(AST.body)
+            elif isinstance(AST, BaseClass.While):
+                print(AST.body)
 
         print('------------ USED VAR ------------')
         repo = Repository.Repository()

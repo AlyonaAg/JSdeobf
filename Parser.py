@@ -70,14 +70,36 @@ class Parser:
         return BaseClass.Return(), finish
 
     def __parserWhile(self, script):
-        start_conditions = re.search(r'(\()', script).start()
-        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions + 1:],
-                                                                          '[(]', '[)]') + 1
-        print('WHILE CONDITIONS:', script[start_conditions:])
-        return None, 0
+        # TODO: create conditions
+        start_conditions = re.search(r'(\()', script).start() + 1
+        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:],
+                                                                         '[(]', '[)]')
+        condition, body, i = [], [], 0
+
+        # checking count of instruction (one or { })
+        if re.match(r'\s*{', script[finish_conditions:]) is not None:
+            start_body = re.search(r'(\{)', script[finish_conditions:]).start()
+            finish_body = start_body + self.__searchForBoundaries(script[start_body + 1:], '[{]', '[}]') + 1
+
+            i = finish_conditions + start_body
+            while i < finish_body:
+                instr, shift = self.__getInstruction(script[i:])
+                if instr is not None:
+                    i += shift - 1
+                    body.append(instr)
+                i += 1
+        else:
+            i = finish_conditions
+            instr, shift = self.__getInstruction(script[i:])
+            if instr is not None:
+                i += shift - 1
+                body.append(instr)
+
+        print(script[i:])
+        return BaseClass.While(condition, body), i
 
     def __getInstruction(self, script):
-        # TODO: учитывать символ, идущий после инструкций (вдруг имена называются с этих слов)
+        # TODO: учитывать символ, идущий после инструкций (вдруг имена начинаются с этих слов)
         #  сдвиг вроде не должен измениться
 
         if re.match(r'function', script) is not None:
@@ -101,7 +123,6 @@ class Parser:
 
     @staticmethod
     def __searchForBoundaries(script, start_bound, finish_bound):
-        a = r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(' + start_bound + ')|(' + finish_bound + ')'
         cnt_bracket, shift = 1, 0
         while shift < len(script) and cnt_bracket:
             if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(' + start_bound + ')|(' + finish_bound + ')',
@@ -126,3 +147,7 @@ class Parser:
                     shift += match.end() - 1
             shift += 1
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
+
+
+# TODO: instruction = for, switch, case (?), if, else, other symbolic...
+# TODO: atom = number, string, var, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.), !
