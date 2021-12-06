@@ -65,23 +65,78 @@ class Parser:
 
     def __parserReturn(self, script):
         finish = self.__searchEndOfCommand(script) + 1
-
-        # print(script[:finish])
+        # TODO: возвращаемое значение
         return BaseClass.Return(), finish
 
     def __parserWhile(self, script):
         # TODO: create conditions
         start_conditions = re.search(r'(\()', script).start() + 1
-        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:],
-                                                                         '[(]', '[)]')
-        condition, body, i = [], [], 0
+        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
+        condition = []
+        body, i = self.__getBody(script, finish_conditions)
+        return BaseClass.While(condition, body), i
 
+    def __parserIf(self, script):
+        # TODO: условие
+        start_conditions = re.search(r'(\()', script).start() + 1
+        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
+        condition = []
+        body, i = self.__getBody(script, finish_conditions)
+        return BaseClass.If(condition, body), i
+
+    def __parserElse(self, script):
+        start_else = len('else')
+        body, i = self.__getBody(script, start_else)
+        return BaseClass.Else(body), i
+
+    def __parserFor(self, script):
+        start_common_cond = re.search(r'(\()', script).start() + 1
+        end_common_cond = start_common_cond + self.__searchForBoundaries(script[start_common_cond:], '[(]', '[)]')
+
+        finish_start = start_common_cond + re.search(r';', script[start_common_cond:end_common_cond]).start() + 1
+        finish_cond = finish_start + re.search(r';', script[finish_start:end_common_cond]).start() + 1
+        finish_step = end_common_cond
+
+        body, i = self.__getBody(script, end_common_cond)
+        return BaseClass.For([], [], [], body), i
+
+    def __getInstruction(self, script):
+        # TODO: учитывать символ, идущий после инструкций (вдруг имена начинаются с этих слов)
+        #  сдвиг вроде не должен измениться
+
+        if re.match(r'function[\W]', script) is not None:
+            return self.__parserFunc(script)
+        elif re.match(r'var ', script) is not None:
+            return self.__parserDeclaration(script)
+        elif re.match(r'let ', script) is not None:
+            return self.__parserDeclaration(script)
+        elif re.match(r'break[\W]', script) is not None:
+            return self.__parserCycleControl(script)
+        elif re.match(r'continue[\W]', script) is not None:
+            return self.__parserCycleControl(script)
+        elif re.match(r'return[\W]', script) is not None:
+            return self.__parserReturn(script)
+        elif re.match(r'while[\W]', script) is not None:
+            return self.__parserWhile(script)
+        elif re.match(r'if[\W]', script) is not None:
+            return self.__parserIf(script)
+        elif re.match(r'else[\W]', script) is not None:
+            return self.__parserElse(script)
+        elif re.match(r'for[\W]', script) is not None:
+            return self.__parserFor(script)
+        return None, 0
+
+    def __getAtom(self, script):
+        pass
+
+    def __getBody(self, script, start_position):
+        body = []
         # checking count of instruction (one or { })
-        if re.match(r'\s*{', script[finish_conditions:]) is not None:
-            start_body = re.search(r'(\{)', script[finish_conditions:]).start()
+        if re.match(r'\s*{', script[start_position:]) is not None:
+            start_body = re.search(r'(\{)', script[start_position:]).start() + start_position
             finish_body = start_body + self.__searchForBoundaries(script[start_body + 1:], '[{]', '[}]') + 1
 
-            i = finish_conditions + start_body
+            i = start_body
             while i < finish_body:
                 instr, shift = self.__getInstruction(script[i:])
                 if instr is not None:
@@ -89,37 +144,16 @@ class Parser:
                     body.append(instr)
                 i += 1
         else:
-            i = finish_conditions
-            instr, shift = self.__getInstruction(script[i:])
-            if instr is not None:
-                i += shift - 1
-                body.append(instr)
+            i, count_instruction = start_position, 0
+            while not count_instruction:
+                instr, shift = self.__getInstruction(script[i:])
+                if instr is not None:
+                    i += shift - 1
+                    body.append(instr)
+                    count_instruction += 1
+                i += 1
 
-        print(script[i:])
-        return BaseClass.While(condition, body), i
-
-    def __getInstruction(self, script):
-        # TODO: учитывать символ, идущий после инструкций (вдруг имена начинаются с этих слов)
-        #  сдвиг вроде не должен измениться
-
-        if re.match(r'function', script) is not None:
-            return self.__parserFunc(script)
-        elif re.match(r'var ', script) is not None:
-            return self.__parserDeclaration(script)
-        elif re.match(r'let ', script) is not None:
-            return self.__parserDeclaration(script)
-        elif re.match(r'break', script) is not None:
-            return self.__parserCycleControl(script)
-        elif re.match(r'continue', script) is not None:
-            return self.__parserCycleControl(script)
-        elif re.match(r'return', script) is not None:
-            return self.__parserReturn(script)
-        elif re.match(r'while', script) is not None:
-            return self.__parserWhile(script)
-        return None, 0
-
-    def __getAtom(self, script):
-        pass
+        return body, i
 
     @staticmethod
     def __searchForBoundaries(script, start_bound, finish_bound):
@@ -149,5 +183,5 @@ class Parser:
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
 
 
-# TODO: instruction = for, switch, case (?), if, else, other symbolic...
+# TODO: instruction = switch, case (?), do while, other symbolic...
 # TODO: atom = number, string, var, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.), !

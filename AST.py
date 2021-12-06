@@ -13,17 +13,7 @@ class AST:
         parser = Parser.Parser()
         self.__Tree = parser.parserAST(self.__script)
 
-        print('------------ AST ------------')
         print(self.__Tree)
         for AST in self.__Tree:
-            if isinstance(AST, BaseClass.Func):
-                print(AST.name, ': ', AST.body)
-            elif isinstance(AST, BaseClass.Declaration):
-                print(AST.body)
-            elif isinstance(AST, BaseClass.While):
-                print(AST.body)
+            AST.print()
 
-        print('------------ USED VAR ------------')
-        repo = Repository.Repository()
-        for var in repo.get_vars():
-            print(var.name, var.namespace)
