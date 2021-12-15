@@ -52,7 +52,6 @@ class Parser:
         body = []
         var = []
         # TODO: parser atom
-        # print(script[:finish], declaration_type)
         return BaseClass.Declaration(declaration_type, body, var), finish
 
     def __parserCycleControl(self, script):
@@ -64,9 +63,12 @@ class Parser:
         return BaseClass.CycleControl(cycle_control_type), finish
 
     def __parserReturn(self, script):
-        finish = self.__searchEndOfCommand(script) + 1
+        start_return_value = len('return')
+        finish_return_value = self.__searchEndOfCommand(script) + 1
         # TODO: возвращаемое значение
-        return BaseClass.Return(), finish
+
+        return_value = []
+        return BaseClass.Return(return_value), finish_return_value
 
     def __parserWhile(self, script):
         # TODO: create conditions
@@ -119,6 +121,22 @@ class Parser:
 
         return BaseClass.Switch(condition, body), i
 
+    def __parserDoWhile(self, script):
+        start_do = len('do')
+        body, i = self.__getBody(script, start_do)
+
+        condition = []
+        start_conditions = i + re.search(r'(\()', script[i:]).start() + 1
+        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
+
+        return BaseClass.DoWhile(condition, body), finish_conditions
+
+    def __parserOtherInstruction(self, script):
+        # TODO: parse
+        atoms = []
+        finish_instruction = self.__searchEndOfCommand(script)
+        return BaseClass.OtherInstruction(atoms), finish_instruction
+
     def __getSwitchCommand(self, script):
         # TODO: create conditions
 
@@ -169,10 +187,15 @@ class Parser:
             return self.__parserFor(script)
         elif re.match(r'switch[\W]', script) is not None:
             return self.__parserSwitch(script)
+        elif re.match(r'do[\W]', script) is not None:
+            return self.__parserDoWhile(script)
+        elif re.match(r'[\w]', script) is not None:
+            return self.__parserOtherInstruction(script)
         return None, 0
 
     def __getAtom(self, script):
-        pass
+        if re.match(r'0x[\dabcdef]+[^\d\w]', script) is not None:
+            pass
 
     def __getBody(self, script, start_position):
         body = []
@@ -228,5 +251,4 @@ class Parser:
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
 
 
-# TODO: instruction = do while, other symbolic...
-# TODO: atom = number, string, var, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.), !
+# TODO: atom = number, string, var, mas[, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.),!

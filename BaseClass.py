@@ -1,6 +1,17 @@
 from enum import Enum
 
 
+# interface (Instruction and Atom)
+class Instruction:
+    def print(self):
+        pass
+
+
+class Atom:
+    def print(self):
+        pass
+
+
 class TypeDeclaration(Enum):
     VAR = 1
     LET = 2
@@ -16,29 +27,13 @@ class TypeSwitchCommand(Enum):
     DEFAULT = 2
 
 
-class Func:
+class Func(Instruction):
     def __init__(self, name, args, locals_var=[], body=[]):
         self.__name = name
         self.__args = args
         self.__locals_var = locals_var
         self.__body = body
         self.__cnt_reference = 0
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def args(self):
-        return self.__args
-
-    @property
-    def locals_var(self):
-        return self.__locals_var
-
-    @property
-    def body(self):
-        return self.__body
 
     @property
     def cnt_reference(self):
@@ -57,19 +52,11 @@ class Func:
         print('}')
 
 
-class Declaration:
+class Declaration(Instruction):
     def __init__(self, declaration_type, body=[], var=[]):
         self.__body = body
         self.__var = var
         self.__type = declaration_type
-
-    @property
-    def body(self):
-        return self.__body
-
-    @property
-    def var(self):
-        return self.__var
 
     def print(self):
         if self.__type is TypeDeclaration.VAR:
@@ -81,7 +68,7 @@ class Declaration:
         print(';')
 
 
-class CycleControl:
+class CycleControl(Instruction):
     def __init__(self, type_cycle_control):
         self.__type = type_cycle_control
 
@@ -92,26 +79,21 @@ class CycleControl:
             print('break;')
 
 
-class Return:
-    def __init__(self):
-        pass
+class Return(Instruction):
+    def __init__(self, return_value=None):
+        self.return_value = return_value
 
     def print(self):
-        print('return ;')
+        print('return ', end='')
+        if self.return_value is not None:
+            print(self.return_value, end='')
+        print(';')
 
 
-class While:
+class While(Instruction):
     def __init__(self, conditions, body):
         self.__conditions = conditions
         self.__body = body
-
-    @property
-    def conditions(self):
-        return self.__conditions
-
-    @property
-    def body(self):
-        return self.__body
 
     def print(self):
         print(f'while ({self.__conditions}){{')
@@ -120,18 +102,10 @@ class While:
         print('}')
 
 
-class If:
+class If(Instruction):
     def __init__(self, conditions, body):
         self.__conditions = conditions
         self.__body = body
-
-    @property
-    def conditions(self):
-        return self.__conditions
-
-    @property
-    def body(self):
-        return self.__body
 
     def print(self):
         print(f'if ({self.__conditions}){{')
@@ -140,13 +114,9 @@ class If:
         print('}')
 
 
-class Else:
+class Else(Instruction):
     def __init__(self, body):
         self.__body = body
-
-    @property
-    def body(self):
-        return self.__body
 
     def print(self):
         print('else {')
@@ -155,7 +125,7 @@ class Else:
         print('}')
 
 
-class For:
+class For(Instruction):
     def __init__(self, start, conditions, step, body):
         self.__start = start
         self.__conditions = conditions
@@ -169,7 +139,7 @@ class For:
         print('}')
 
 
-class Switch:
+class Switch(Instruction):
     def __init__(self, conditions, body):
         self.__conditions = conditions
         self.__body = body
@@ -181,7 +151,19 @@ class Switch:
         print('}')
 
 
-class SwitchCommand:
+class DoWhile(Instruction):
+    def __init__(self, conditions, body):
+        self.__conditions = conditions
+        self.__body = body
+
+    def print(self):
+        print('do {')
+        for instr in self.__body:
+            instr.print()
+        print(f'}} while ({self.__conditions});')
+
+
+class SwitchCommand(Instruction):
     def __init__(self, switch_command_type, conditions, body):
         self.switch_command_type = switch_command_type
         self.__conditions = conditions
@@ -194,6 +176,16 @@ class SwitchCommand:
             print('default:')
         for instr in self.__body:
             instr.print()
+
+
+class OtherInstruction(Instruction):
+    def __init__(self, atoms):
+        self.atoms = atoms
+
+    def print(self):
+        print(self.atoms)
+        # for i in self.atoms:
+        #    i.print()
 
 
 class Var:
