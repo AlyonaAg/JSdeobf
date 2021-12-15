@@ -35,4 +35,4 @@ class FuncDB:
         return self.__funcs
 
     def append(self, value):
-        self.__funcs += value
+        self.__funcs.append(value)

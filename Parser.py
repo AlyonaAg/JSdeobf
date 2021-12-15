@@ -43,7 +43,10 @@ class Parser:
         repo.append_var(args)
 
         Parser.__namespace = "__main"
-        return BaseClass.Func(name, args, locals_var, body), finish
+
+        func = BaseClass.Func(name, args, locals_var, body)
+        repo.append_func(func)
+        return func, finish
 
     def __parserDeclaration(self, script):
         declaration_type = BaseClass.TypeDeclaration.VAR if script[:3] == 'var' else BaseClass.TypeDeclaration.LET
@@ -132,10 +135,43 @@ class Parser:
         return BaseClass.DoWhile(condition, body), finish_conditions
 
     def __parserOtherInstruction(self, script):
-        # TODO: parse
-        atoms = []
         finish_instruction = self.__searchEndOfCommand(script)
+        atoms = self.__getAtomList(script[:finish_instruction])
         return BaseClass.OtherInstruction(atoms), finish_instruction
+
+    @staticmethod
+    def __getNumber(script):
+        if script.startswith('0x'):
+            value = int(script[:-1], base=16)
+        elif script.startswith('0o'):
+            value = int(script[:-1], base=8)
+        elif script.startswith('0b'):
+            value = int(script[:-1], base=2)
+        else:
+            value = int(script[:-1])
+        return BaseClass.Number(value), len(script) - 1
+
+    @staticmethod
+    def __getString(script):
+        return BaseClass.String(script), len(script)
+
+    def __getArray(self, script):
+        start_array = re.search(r'(\[)', script).start() + 1
+        finish_array = start_array + self.__searchForBoundaries(script[start_array:], r'\[', r'\]')
+        atoms = self.__getAtomList(script[start_array:finish_array - 1])
+        return BaseClass.Array(atoms), finish_array - 1
+
+    def __getCallFunc(self, script):
+        start_args = re.search(r'(\()', script).start() + 1
+        finish_args = start_args + self.__searchForBoundaries(script[start_args:], '[(]', '[)]')
+
+        name = script[:start_args - 1]
+        args = self.__getAtomList(script[start_args:finish_args - 1])
+
+        repo = Repository.Repository()
+        repo.inc_used(name)
+
+        return BaseClass.CallFunc(name, args), finish_args
 
     def __getSwitchCommand(self, script):
         # TODO: create conditions
@@ -194,8 +230,15 @@ class Parser:
         return None, 0
 
     def __getAtom(self, script):
-        if re.match(r'0x[\dabcdef]+[^\d\w]', script) is not None:
-            pass
+        if (match := re.match(r'((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|\d+)[^\w\d]', script)) is not None:
+            return self.__getNumber(match.group())
+        if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")', script)) is not None:
+            return self.__getString(match.group())
+        if re.match(r'\[', script) is not None:
+            return self.__getArray(script)
+        if re.match(r'((\w+\.)*\w+\s*\()', script) is not None:
+            return self.__getCallFunc(script)
+        return None, 0
 
     def __getBody(self, script, start_position):
         body = []
@@ -222,6 +265,18 @@ class Parser:
                 i += 1
 
         return body, i
+
+    def __getAtomList(self, script):
+        i = 0
+        atoms = []
+        while i < len(script):
+            atom, shift = self.__getAtom(script[i:])
+            if atom is not None:
+                i += shift - 1
+                atoms.append(atom)
+            i += 1
+
+        return atoms
 
     @staticmethod
     def __searchForBoundaries(script, start_bound, finish_bound):
@@ -250,5 +305,4 @@ class Parser:
             shift += 1
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
 
-
-# TODO: atom = number, string, var, mas[, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.),!
+# TODO: atom = var, class., operation (+,-, and etc.), (), condition (>, ==, < and etc.),!, true, false

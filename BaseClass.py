@@ -12,6 +12,7 @@ class Atom:
         pass
 
 
+# base enum
 class TypeDeclaration(Enum):
     VAR = 1
     LET = 2
@@ -27,6 +28,7 @@ class TypeSwitchCommand(Enum):
     DEFAULT = 2
 
 
+# base instruction
 class Func(Instruction):
     def __init__(self, name, args, locals_var=[], body=[]):
         self.__name = name
@@ -38,6 +40,10 @@ class Func(Instruction):
     @property
     def cnt_reference(self):
         return self.__cnt_reference
+
+    @property
+    def name(self):
+        return self.__name
 
     def inc(self):
         self.__cnt_reference += 1
@@ -183,12 +189,16 @@ class OtherInstruction(Instruction):
         self.atoms = atoms
 
     def print(self):
-        print(self.atoms)
-        # for i in self.atoms:
-        #    i.print()
+        if len(self.atoms):
+            for i in self.atoms:
+                i.print()
+            print()
+        else:
+            print(self.atoms)
 
 
-class Var:
+# base atom
+class Var(Atom):
     def __init__(self, name, namespace='__main'):
         self.__name = name
         self.__namespace = namespace
@@ -207,3 +217,42 @@ class Var:
 
     def print(self):
         print(self.__name, end=' ')
+
+
+class Number(Atom):
+    def __init__(self, value):
+        self.value = value
+
+    def print(self):
+        print(self.value, end=' ')
+
+
+class String(Atom):
+    def __init__(self, value):
+        self.value = value
+
+    def print(self):
+        print(self.value, end=' ')
+
+
+class Array(Atom):
+    def __init__(self, atoms):
+        self.atoms = atoms
+
+    def print(self):
+        print('[', end='')
+        for atom in self.atoms:
+            atom.print()
+        print(']', end='')
+
+
+class CallFunc(Atom):
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def print(self):
+        print(f'{self.name}(', end='')
+        for atom in self.args:
+            atom.print()
+        print(')', end='')

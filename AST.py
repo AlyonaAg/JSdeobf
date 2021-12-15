@@ -1,4 +1,5 @@
 import Parser
+import Repository
 
 
 class AST:
@@ -14,4 +15,3 @@ class AST:
         print(self.__Tree)
         for AST in self.__Tree:
             AST.print()
-

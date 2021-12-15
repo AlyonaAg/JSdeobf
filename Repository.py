@@ -22,5 +22,7 @@ class Repository:
         pass
 
     def inc_used(self, name):
-        pass
+        for func in self.__FuncDB.funcs:
+            if name == func.name:
+                func.inc()
 
