@@ -11,6 +11,11 @@ class TypeCycleControl(Enum):
     BREAK = 2
 
 
+class TypeSwitchCommand(Enum):
+    CASE = 1
+    DEFAULT = 2
+
+
 class Func:
     def __init__(self, name, args, locals_var=[], body=[]):
         self.__name = name
@@ -162,6 +167,33 @@ class For:
         for instr in self.__body:
             instr.print()
         print('}')
+
+
+class Switch:
+    def __init__(self, conditions, body):
+        self.__conditions = conditions
+        self.__body = body
+
+    def print(self):
+        print(f'switch ({self.__conditions}){{')
+        for instr in self.__body:
+            instr.print()
+        print('}')
+
+
+class SwitchCommand:
+    def __init__(self, switch_command_type, conditions, body):
+        self.switch_command_type = switch_command_type
+        self.__conditions = conditions
+        self.__body = body
+
+    def print(self):
+        if self.switch_command_type is TypeSwitchCommand.CASE:
+            print(f'case ({self.__conditions}):')
+        else:
+            print('default:')
+        for instr in self.__body:
+            instr.print()
 
 
 class Var:

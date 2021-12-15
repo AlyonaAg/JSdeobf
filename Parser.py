@@ -100,10 +100,53 @@ class Parser:
         body, i = self.__getBody(script, end_common_cond)
         return BaseClass.For([], [], [], body), i
 
-    def __getInstruction(self, script):
-        # TODO: учитывать символ, идущий после инструкций (вдруг имена начинаются с этих слов)
-        #  сдвиг вроде не должен измениться
+    def __parserSwitch(self, script):
+        # TODO: create conditions
+        start_conditions = re.search(r'(\()', script).start() + 1
+        finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
+        condition, body = [], []
 
+        start_body = re.search(r'(\{)', script[finish_conditions:]).start() + finish_conditions
+        finish_body = start_body + self.__searchForBoundaries(script[start_body + 1:], '[{]', '[}]') + 1
+
+        i = start_body
+        while i < finish_body:
+            instr, shift = self.__getSwitchCommand(script[i:finish_body])
+            if instr is not None:
+                i += shift - 1
+                body.append(instr)
+            i += 1
+
+        return BaseClass.Switch(condition, body), i
+
+    def __getSwitchCommand(self, script):
+        # TODO: create conditions
+
+        if re.match(r'case[\W]', script) is not None:
+            command_type = BaseClass.TypeSwitchCommand.CASE
+        elif re.match(r'default[\W]', script) is not None:
+            command_type = BaseClass.TypeSwitchCommand.DEFAULT
+        else:
+            return None, 0
+
+        condition = []
+        start_body = re.search(r':', script).start() + 1
+
+        i, body = start_body, []
+        while (i - start_body) < len(script):
+            if re.match(r'case[\W]', script[i:]) is not None or\
+                    re.match(r'default[\W]', script[i:]) is not None:
+                i -= 1
+                break
+            instr, shift = self.__getInstruction(script[i:])
+            if instr is not None:
+                i += shift - 1
+                body.append(instr)
+            i += 1
+
+        return BaseClass.SwitchCommand(command_type, condition, body), i
+
+    def __getInstruction(self, script):
         if re.match(r'function[\W]', script) is not None:
             return self.__parserFunc(script)
         elif re.match(r'var ', script) is not None:
@@ -124,6 +167,8 @@ class Parser:
             return self.__parserElse(script)
         elif re.match(r'for[\W]', script) is not None:
             return self.__parserFor(script)
+        elif re.match(r'switch[\W]', script) is not None:
+            return self.__parserSwitch(script)
         return None, 0
 
     def __getAtom(self, script):
@@ -183,5 +228,5 @@ class Parser:
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
 
 
-# TODO: instruction = switch, case (?), do while, other symbolic...
+# TODO: instruction = do while, other symbolic...
 # TODO: atom = number, string, var, func(, class., operation (+, -, and etc.), (), condition (>, ==, < and etc.), !

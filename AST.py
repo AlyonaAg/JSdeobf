@@ -1,6 +1,4 @@
-import BaseClass
 import Parser
-import Repository
 
 
 class AST:
