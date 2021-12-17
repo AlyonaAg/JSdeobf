@@ -18,8 +18,11 @@ class Repository:
     def append_func(self, value):
         self.__FuncDB.append(value)
 
-    def search_var(self, name):
-        pass
+    def search_var(self, name, namespace):
+        for var in self.__VarDB.vars:
+            if name == var.name and namespace == var.namespace:
+                return var
+        return None
 
     def inc_used(self, name):
         for func in self.__FuncDB.funcs:

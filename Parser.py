@@ -135,7 +135,7 @@ class Parser:
         return BaseClass.DoWhile(condition, body), finish_conditions
 
     def __parserOtherInstruction(self, script):
-        finish_instruction = self.__searchEndOfCommand(script)
+        finish_instruction = self.__searchEndOfCommand(script) + 1
         atoms = self.__getAtomList(script[:finish_instruction])
         return BaseClass.OtherInstruction(atoms), finish_instruction
 
@@ -154,6 +154,20 @@ class Parser:
     @staticmethod
     def __getString(script):
         return BaseClass.String(script), len(script)
+
+    @staticmethod
+    def __getVar(script):
+        name = script[:-1]
+        if re.search(r'\.', script) is not None:
+            return BaseClass.Var(name), len(name)
+
+        repo = Repository.Repository()
+        if (var := repo.search_var(name, Parser.__namespace)) is not None:
+            return var, len(name)
+        else:
+            new_var = BaseClass.Var(name, Parser.__namespace)
+            repo.append_var([new_var])
+            return new_var, len(name)
 
     def __getArray(self, script):
         start_array = re.search(r'(\[)', script).start() + 1
@@ -187,7 +201,7 @@ class Parser:
         start_body = re.search(r':', script).start() + 1
 
         i, body = start_body, []
-        while (i - start_body) < len(script):
+        while i < len(script):
             if re.match(r'case[\W]', script[i:]) is not None or\
                     re.match(r'default[\W]', script[i:]) is not None:
                 i -= 1
@@ -238,6 +252,8 @@ class Parser:
             return self.__getArray(script)
         if re.match(r'((\w+\.)*\w+\s*\()', script) is not None:
             return self.__getCallFunc(script)
+        if (match := re.match(r'(\w+\.)*\w+[^\w]', script)) is not None:
+            return self.__getVar(match.group())
         return None, 0
 
     def __getBody(self, script, start_position):
