@@ -52,9 +52,8 @@ class Parser:
         declaration_type = BaseClass.TypeDeclaration.VAR if script[:3] == 'var' else BaseClass.TypeDeclaration.LET
         finish = self.__searchEndOfCommand(script) + 1
 
-        body = []
+        body = self.__getAtomList(script[3:finish])
         var = []
-        # TODO: parser atom
         return BaseClass.Declaration(declaration_type, body, var), finish
 
     def __parserCycleControl(self, script):
@@ -62,30 +61,25 @@ class Parser:
             'continue') else BaseClass.TypeCycleControl.BREAK
         finish = self.__searchEndOfCommand(script) + 1
 
-        # print(script[:finish], cycle_control_type)
         return BaseClass.CycleControl(cycle_control_type), finish
 
     def __parserReturn(self, script):
         start_return_value = len('return')
         finish_return_value = self.__searchEndOfCommand(script) + 1
-        # TODO: возвращаемое значение
-
-        return_value = []
+        return_value = self.__getAtomList(script[start_return_value:finish_return_value])
         return BaseClass.Return(return_value), finish_return_value
 
     def __parserWhile(self, script):
-        # TODO: create conditions
         start_conditions = re.search(r'(\()', script).start() + 1
         finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
-        condition = []
+        condition = self.__getAtomList(script[start_conditions:finish_conditions])
         body, i = self.__getBody(script, finish_conditions)
         return BaseClass.While(condition, body), i
 
     def __parserIf(self, script):
-        # TODO: условие
         start_conditions = re.search(r'(\()', script).start() + 1
         finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
-        condition = []
+        condition = self.__getAtomList(script[start_conditions:finish_conditions])
         body, i = self.__getBody(script, finish_conditions)
         return BaseClass.If(condition, body), i
 
@@ -98,19 +92,24 @@ class Parser:
         start_common_cond = re.search(r'(\()', script).start() + 1
         end_common_cond = start_common_cond + self.__searchForBoundaries(script[start_common_cond:], '[(]', '[)]')
 
-        finish_start = start_common_cond + re.search(r';', script[start_common_cond:end_common_cond]).start() + 1
-        finish_cond = finish_start + re.search(r';', script[finish_start:end_common_cond]).start() + 1
+        finish_init = start_common_cond + re.search(r';', script[start_common_cond:end_common_cond]).start() + 1
+        init = self.__getAtomList(script[start_common_cond:finish_init])
+
+        finish_cond = finish_init + re.search(r';', script[finish_init:end_common_cond]).start() + 1
+        conditions = self.__getAtomList(script[finish_init:finish_cond])
+
         finish_step = end_common_cond
+        step = self.__getAtomList(script[finish_cond:finish_step])
 
         body, i = self.__getBody(script, end_common_cond)
-        return BaseClass.For([], [], [], body), i
+        return BaseClass.For(init, conditions, step, body), i
 
     def __parserSwitch(self, script):
-        # TODO: create conditions
         start_conditions = re.search(r'(\()', script).start() + 1
         finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
-        condition, body = [], []
+        condition = self.__getAtomList(script[start_conditions:finish_conditions])
 
+        body = []
         start_body = re.search(r'(\{)', script[finish_conditions:]).start() + finish_conditions
         finish_body = start_body + self.__searchForBoundaries(script[start_body + 1:], '[{]', '[}]') + 1
 
@@ -128,9 +127,9 @@ class Parser:
         start_do = len('do')
         body, i = self.__getBody(script, start_do)
 
-        condition = []
         start_conditions = i + re.search(r'(\()', script[i:]).start() + 1
         finish_conditions = start_conditions + self.__searchForBoundaries(script[start_conditions:], '[(]', '[)]')
+        condition = self.__getAtomList(script[start_conditions:finish_conditions])
 
         return BaseClass.DoWhile(condition, body), finish_conditions
 
@@ -323,8 +322,6 @@ class Parser:
         return BaseClass.CallFunc(name, args), finish_args
 
     def __getSwitchCommand(self, script):
-        # TODO: create conditions
-
         if re.match(r'case[\W]', script) is not None:
             command_type = BaseClass.TypeSwitchCommand.CASE
         elif re.match(r'default[\W]', script) is not None:
@@ -332,8 +329,9 @@ class Parser:
         else:
             return None, 0
 
-        condition = []
         start_body = re.search(r':', script).start() + 1
+        condition = self.__getAtomList(script[len('case') if command_type == BaseClass.TypeSwitchCommand.CASE
+                                              else len('default'):start_body])
 
         i, body = start_body, []
         while i < len(script):

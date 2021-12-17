@@ -147,8 +147,8 @@ class Return(Instruction):
 
     def print(self):
         print('return ', end='')
-        if self.return_value is not None:
-            print(self.return_value, end='')
+        for atom in self.return_value:
+            atom.print()
         print(';')
 
 
@@ -158,7 +158,10 @@ class While(Instruction):
         self.__body = body
 
     def print(self):
-        print(f'while ({self.__conditions}){{')
+        print(f'while (', end='')
+        for atom in self.__conditions:
+            atom.print()
+        print('){')
         for instr in self.__body:
             instr.print()
         print('}')
@@ -170,7 +173,10 @@ class If(Instruction):
         self.__body = body
 
     def print(self):
-        print(f'if ({self.__conditions}){{')
+        print(f'if (', end='')
+        for atom in self.__conditions:
+            atom.print()
+        print('){')
         for instr in self.__body:
             instr.print()
         print('}')
@@ -188,14 +194,23 @@ class Else(Instruction):
 
 
 class For(Instruction):
-    def __init__(self, start, conditions, step, body):
-        self.__start = start
+    def __init__(self, init, conditions, step, body):
+        self.__init = init
         self.__conditions = conditions
         self.__step = step
         self.__body = body
 
     def print(self):
-        print(f'for ({self.__start};{self.__conditions};{self.__step}){{')
+        print(f'for (', end='')
+        for atom in self.__init:
+            atom.print()
+        print('; ', end='')
+        for atom in self.__conditions:
+            atom.print()
+        print('; ', end='')
+        for atom in self.__step:
+            atom.print()
+        print('){')
         for instr in self.__body:
             instr.print()
         print('}')
@@ -207,7 +222,10 @@ class Switch(Instruction):
         self.__body = body
 
     def print(self):
-        print(f'switch ({self.__conditions}){{')
+        print(f'switch (', end='')
+        for atom in self.__conditions:
+            atom.print()
+        print('){')
         for instr in self.__body:
             instr.print()
         print('}')
@@ -222,7 +240,10 @@ class DoWhile(Instruction):
         print('do {')
         for instr in self.__body:
             instr.print()
-        print(f'}} while ({self.__conditions});')
+        print('} while (', end='')
+        for atom in self.__conditions:
+            atom.print()
+        print(');')
 
 
 class SwitchCommand(Instruction):
@@ -233,7 +254,10 @@ class SwitchCommand(Instruction):
 
     def print(self):
         if self.switch_command_type is TypeSwitchCommand.CASE:
-            print(f'case ({self.__conditions}):')
+            print('case (', end='')
+            for atom in self.__conditions:
+                atom.print()
+            print('):')
         else:
             print('default:')
         for instr in self.__body:
