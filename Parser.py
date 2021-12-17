@@ -135,21 +135,30 @@ class Parser:
         return BaseClass.DoWhile(condition, body), finish_conditions
 
     def __parserOtherInstruction(self, script):
-        finish_instruction = self.__searchEndOfCommand(script) + 1
+        finish_instruction = self.__searchEndOfCommand(script)
         atoms = self.__getAtomList(script[:finish_instruction])
         return BaseClass.OtherInstruction(atoms), finish_instruction
 
     @staticmethod
     def __getNumber(script):
-        if script.startswith('0x'):
-            value = int(script[:-1], base=16)
-        elif script.startswith('0o'):
-            value = int(script[:-1], base=8)
-        elif script.startswith('0b'):
-            value = int(script[:-1], base=2)
+        if re.search(r'[^\w]', script) is not None:
+            return_len = len(script) - 1
+            str_value = script[:-1]
         else:
-            value = int(script[:-1])
-        return BaseClass.Number(value), len(script) - 1
+            str_value = script
+            return_len = len(script)
+
+        if '.' in str_value:
+            value = float(str_value)
+        elif script.startswith('0x'):
+            value = int(str_value, base=16)
+        elif script.startswith('0o'):
+            value = int(str_value, base=8)
+        elif script.startswith('0b'):
+            value = int(str_value, base=2)
+        else:
+            value = int(str_value)
+        return BaseClass.Number(value), return_len
 
     @staticmethod
     def __getString(script):
@@ -157,7 +166,11 @@ class Parser:
 
     @staticmethod
     def __getVar(script):
-        name = script[:-1]
+        if re.search(r'[^\w]', script) is not None:
+            name = script[:-1]
+        else:
+            name = script
+
         if re.search(r'\.', script) is not None:
             return BaseClass.Var(name), len(name)
 
@@ -169,11 +182,133 @@ class Parser:
             repo.append_var([new_var])
             return new_var, len(name)
 
+    @staticmethod
+    def __getBool(script):
+        if re.search(r'[^\w]', script) is not None:
+            return_len = len(script) - 1
+        else:
+            return_len = len(script)
+
+        if re.match(r'true', script) is not None:
+            return BaseClass.Bool(BaseClass.TypeBool.TRUE), return_len
+        else:
+            return BaseClass.Bool(BaseClass.TypeBool.FALSE), return_len
+
+    @staticmethod
+    def __getArOperation(script):
+        if re.match(r'\+=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.ADD_ASSIGN
+        elif re.match(r'-=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.SUB_ASSIGN
+        elif re.match(r'\*=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.MUl_ASSIGN
+        elif re.match(r'/=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.DIV_ASSIGN
+        elif re.match(r'\*\*=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.DEG_ASSIGN
+        elif re.match(r'%=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.MOD_ASSIGN
+        elif re.match(r'\+\+', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.INC
+        elif re.match(r'\*\*', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.DEG
+        elif re.match(r'--', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.DEC
+        elif re.match(r'\+', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.ADD
+        elif re.match(r'-', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.SUB
+        elif re.match(r'\*', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.MUL
+        elif re.match(r'/', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.DIV
+        elif re.match(r'%', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.MOD
+        elif re.match(r'=', script) is not None:
+            operation_type = BaseClass.TypeArithmeticOperation.ASSIGN
+
+        return BaseClass.ArithmeticOperation(operation_type), len(script)
+
+    @staticmethod
+    def __getBinOperation(script):
+        if re.match(r'>>>=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.RIGHT_SHIFT_FILL_ASSIGN
+        elif re.match(r'>>>', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.RIGHT_SHIFT_FILL
+        elif re.match(r'>>=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.RIGHT_SHIFT_ASSIGN
+        elif re.match(r'>>', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.RIGHT_SHIFT
+        elif re.match(r'<<=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.LEFT_SHIFT_ASSIGN
+        elif re.match(r'<<', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.LEFT_SHIF
+        elif re.match(r'~=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.NOT_ASSIGN
+        elif re.match(r'&=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.AND_ASSIGN
+        elif re.match(r'\|=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.OR_ASSIGN
+        elif re.match(r'\^=', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.XOR_ASSIGN
+        elif re.match(r'~', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.NOT
+        elif re.match(r'&', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.AND
+        elif re.match(r'\|', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.OR
+        elif re.match(r'\^', script) is not None:
+            operation_type = BaseClass.TypeBinaryOperation.XOR
+
+        return BaseClass.BinaryOperation(operation_type), len(script)
+
+    @staticmethod
+    def __getLogicalOperation(script):
+        if re.match(r'==', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.EQ
+        elif re.match(r'!=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.NE
+        elif re.match(r'<=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.LESS_EQ
+        elif re.match(r'>=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.GREATER_EQ
+        elif re.match(r'\?\?=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.NULLISH_ASSIGN
+        elif re.match(r'&&=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.AND_ASSIGN
+        elif re.match(r'\|\|=', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.OR_ASSIGN
+        elif re.match(r'&&', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.AND
+        elif re.match(r'\|\|', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.OR
+        elif re.match(r'!', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.NOT
+        elif re.match(r'\?\?', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.NULLISH
+        elif re.match(r'<', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.LESS
+        elif re.match(r'>', script) is not None:
+            operation_type = BaseClass.TypeLogicalOperation.GREATER
+
+        return BaseClass.LogicalOperation(operation_type), len(script)
+
+    @staticmethod
+    def __getBorder():
+        return BaseClass.Border(), 1
+
     def __getArray(self, script):
         start_array = re.search(r'(\[)', script).start() + 1
         finish_array = start_array + self.__searchForBoundaries(script[start_array:], r'\[', r'\]')
         atoms = self.__getAtomList(script[start_array:finish_array - 1])
         return BaseClass.Array(atoms), finish_array - 1
+
+    def __getBrackets(self, script):
+        start_brackets = re.search(r'(\()', script).start() + 1
+        finish_brackets = start_brackets + self.__searchForBoundaries(script[start_brackets:], '[(]', '[)]')
+
+        atoms = self.__getAtomList(script[start_brackets:finish_brackets - 1])
+        return BaseClass.Brackets(atoms), finish_brackets
 
     def __getCallFunc(self, script):
         start_args = re.search(r'(\()', script).start() + 1
@@ -214,6 +349,42 @@ class Parser:
 
         return BaseClass.SwitchCommand(command_type, condition, body), i
 
+    def __getAtom(self, script):
+        if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script)) is not None:
+            return self.__getNumber(match.group())
+        elif (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")', script)) is not None:
+            return self.__getString(match.group())
+        elif re.match(r'\[', script) is not None:
+            return self.__getArray(script)
+        elif re.match(r'\(', script) is not None:
+            return self.__getBrackets(script)
+        elif re.match(r'((\w+\.)*\w+\s*\()', script) is not None:
+            return self.__getCallFunc(script)
+        elif re.match(r'((true)|(false)([^\w]|$))', script) is not None:
+            return self.__getBool(script)
+        elif (match := re.match(r'((\w+\.)*\w+([^\w]|$))', script)) is not None:
+            return self.__getVar(match.group())
+        elif (match := re.match(r'((\+=)|(-=)|(\*=)|(/=)|(\*\*=)|(%=))', script)) is not None:
+            return self.__getArOperation(match.group())
+        elif (match := re.match(r'((\+\+)|(--)|(\*\*))', script)) is not None:
+            return self.__getArOperation(match.group())
+        elif (match := re.match(r'((>>>=)|(>>>)|(>>=)|(>>)|(<<=)|(<<))', script)) is not None:
+            return self.__getBinOperation(match.group())
+        elif (match := re.match(r'((~=)|(&=)|(\|=)|(\^=))', script)) is not None:
+            return self.__getBinOperation(match.group())
+        elif (match := re.match(r'((==)|(!=)|(<=)|(>=)|(&&=)|(\|\|=)|(\?\?=))', script)) is not None:
+            return self.__getLogicalOperation(match.group())
+        elif (match := re.match(r'"((!)|(<)|(>)|(&&)|(\|\|)|(\?\?))"gm', script)) is not None:
+            return self.__getLogicalOperation(match.group())
+        elif (match := re.match(r'((~)|(&)|(\|)|(\^))', script)) is not None:
+            return self.__getBinOperation(match.group())
+        elif (match := re.match(r'((\+)|(-)|(\*)|(/)|(%)|(=))', script)) is not None:
+            return self.__getArOperation(match.group())
+        elif re.match(r',', script) is not None:
+            return self.__getBorder()
+
+        return None, 0
+
     def __getInstruction(self, script):
         if re.match(r'function[\W]', script) is not None:
             return self.__parserFunc(script)
@@ -241,19 +412,6 @@ class Parser:
             return self.__parserDoWhile(script)
         elif re.match(r'[\w]', script) is not None:
             return self.__parserOtherInstruction(script)
-        return None, 0
-
-    def __getAtom(self, script):
-        if (match := re.match(r'((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|\d+)[^\w\d]', script)) is not None:
-            return self.__getNumber(match.group())
-        if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")', script)) is not None:
-            return self.__getString(match.group())
-        if re.match(r'\[', script) is not None:
-            return self.__getArray(script)
-        if re.match(r'((\w+\.)*\w+\s*\()', script) is not None:
-            return self.__getCallFunc(script)
-        if (match := re.match(r'(\w+\.)*\w+[^\w]', script)) is not None:
-            return self.__getVar(match.group())
         return None, 0
 
     def __getBody(self, script, start_position):
@@ -321,4 +479,4 @@ class Parser:
             shift += 1
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
 
-# TODO: atom = var, class., operation (+,-, and etc.), (), condition (>, ==, < and etc.),!, true, false
+# TODO: atom = class.

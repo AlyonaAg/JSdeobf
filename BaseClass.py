@@ -28,6 +28,62 @@ class TypeSwitchCommand(Enum):
     DEFAULT = 2
 
 
+class TypeBool(Enum):
+    TRUE = 1
+    FALSE = 2
+
+
+class TypeArithmeticOperation(Enum):
+    ADD = 1
+    SUB = 2
+    MUL = 3
+    DIV = 4
+    MOD = 5
+    DEG = 6
+    INC = 7
+    DEC = 8
+    ASSIGN = 9
+    ADD_ASSIGN = 10
+    SUB_ASSIGN = 11
+    MUL_ASSIGN = 12
+    DIV_ASSIGN = 13
+    DEG_ASSIGN = 14
+    MOD_ASSIGN = 15
+
+
+class TypeBinaryOperation(Enum):
+    LEFT_SHIFT = 1
+    RIGHT_SHIFT = 2
+    RIGHT_SHIFT_FILL = 3  # >>>
+    NOT = 4  # ~
+    AND = 5
+    OR = 6
+    XOR = 7
+    LEFT_SHIFT_ASSIGN = 8
+    RIGHT_SHIFT_ASSIGN = 9
+    RIGHT_SHIFT_FILL_ASSIGN = 10  # >>>=
+    NOT_ASSIGN = 11
+    AND_ASSIGN = 12
+    OR_ASSIGN = 13
+    XOR_ASSIGN = 14
+
+
+class TypeLogicalOperation(Enum):
+    EQ = 1  # ==
+    NE = 2  # !=
+    LESS = 3  # <
+    GREATER = 4  # >
+    LESS_EQ = 5  # <=
+    GREATER_EQ = 6  # >=
+    AND = 7
+    OR = 8
+    AND_ASSIGN = 9
+    OR_ASSIGN = 10
+    NULLISH = 11  # ??
+    NULLISH_ASSIGN = 12  # ??=
+    NOT = 13
+
+
 # base instruction
 class Func(Instruction):
     def __init__(self, name, args, locals_var=[], body=[]):
@@ -192,9 +248,9 @@ class OtherInstruction(Instruction):
         if len(self.atoms):
             for i in self.atoms:
                 i.print()
-            print()
         else:
-            print(self.atoms)
+            print(self.atoms, end='')
+        print(';')
 
 
 # base atom
@@ -216,7 +272,7 @@ class Var(Atom):
         self.__name = value
 
     def print(self):
-        print(self.__name, end=' ')
+        print(self.__name, end='')
 
 
 class Number(Atom):
@@ -224,7 +280,7 @@ class Number(Atom):
         self.value = value
 
     def print(self):
-        print(self.value, end=' ')
+        print(self.value, end='')
 
 
 class String(Atom):
@@ -232,7 +288,7 @@ class String(Atom):
         self.value = value
 
     def print(self):
-        print(self.value, end=' ')
+        print(self.value, end='')
 
 
 class Array(Atom):
@@ -254,5 +310,140 @@ class CallFunc(Atom):
     def print(self):
         print(f'{self.name}(', end='')
         for atom in self.args:
+            atom.print()
+        print(')', end='')
+
+
+class Bool(Atom):
+    def __init__(self, bool_type):
+        self.bool_type = bool_type
+
+    def print(self):
+        if self.bool_type == TypeBool.TRUE:
+            print('true', end='')
+        else:
+            print('false', end='')
+
+
+class ArithmeticOperation(Atom):
+    def __init__(self, operation_type):
+        self.operation_type = operation_type
+
+    def print(self):
+        if self.operation_type == TypeArithmeticOperation.ADD:
+            print(' + ', end='')
+        elif self.operation_type == TypeArithmeticOperation.SUB:
+            print(' - ', end='')
+        elif self.operation_type == TypeArithmeticOperation.MUL:
+            print(' * ', end='')
+        elif self.operation_type == TypeArithmeticOperation.DIV:
+            print(' / ', end='')
+        elif self.operation_type == TypeArithmeticOperation.MOD:
+            print(' % ', end='')
+        elif self.operation_type == TypeArithmeticOperation.DEG:
+            print(' ** ', end='')
+        elif self.operation_type == TypeArithmeticOperation.INC:
+            print('++ ', end='')
+        elif self.operation_type == TypeArithmeticOperation.DEC:
+            print('-- ', end='')
+        elif self.operation_type == TypeArithmeticOperation.ASSIGN:
+            print(' = ', end='')
+        elif self.operation_type == TypeArithmeticOperation.ADD_ASSIGN:
+            print(' += ', end='')
+        elif self.operation_type == TypeArithmeticOperation.SUB_ASSIGN:
+            print(' -= ', end='')
+        elif self.operation_type == TypeArithmeticOperation.MUL_ASSIGN:
+            print(' *= ', end='')
+        elif self.operation_type == TypeArithmeticOperation.DIV_ASSIGN:
+            print(' /= ', end='')
+        elif self.operation_type == TypeArithmeticOperation.DEG_ASSIGN:
+            print(' **= ', end='')
+        elif self.operation_type == TypeArithmeticOperation.MOD_ASSIGN:
+            print(' %= ', end='')
+
+
+class BinaryOperation(Atom):
+    def __init__(self, operation_type):
+        self.operation_type = operation_type
+
+    def print(self):
+        if self.operation_type == TypeBinaryOperation.LEFT_SHIFT:
+            print(' << ', end='')
+        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT:
+            print(' >> ', end='')
+        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_FILL:
+            print(' >>> ', end='')
+        elif self.operation_type == TypeBinaryOperation.NOT:
+            print(' ~ ', end='')
+        elif self.operation_type == TypeBinaryOperation.AND:
+            print(' & ', end='')
+        elif self.operation_type == TypeBinaryOperation.OR:
+            print(' | ', end='')
+        elif self.operation_type == TypeBinaryOperation.XOR:
+            print(' ^ ', end='')
+        elif self.operation_type == TypeBinaryOperation.LEFT_SHIFT_ASSIGN:
+            print(' >>= ', end='')
+        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_ASSIGN:
+            print(' <<= ', end='')
+        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_FILL_ASSIGN:
+            print(' >>>= ', end='')
+        elif self.operation_type == TypeBinaryOperation.NOT_ASSIGN:
+            print(' ~= ', end='')
+        elif self.operation_type == TypeBinaryOperation.AND_ASSIGN:
+            print(' &= ', end='')
+        elif self.operation_type == TypeBinaryOperation.OR_ASSIGN:
+            print(' |= ', end='')
+        elif self.operation_type == TypeBinaryOperation.XOR_ASSIGN:
+            print(' ^= ', end='')
+
+
+class LogicalOperation(Atom):
+    def __init__(self, operation_type):
+        self.operation_type = operation_type
+
+    def print(self):
+        if self.operation_type == TypeLogicalOperation.EQ:
+            print(' == ', end='')
+        elif self.operation_type == TypeLogicalOperation.NE:
+            print(' != ', end='')
+        elif self.operation_type == TypeLogicalOperation.LESS:
+            print(' < ', end='')
+        elif self.operation_type == TypeLogicalOperation.GREATER:
+            print(' > ', end='')
+        elif self.operation_type == TypeLogicalOperation.LESS_EQ:
+            print(' <= ', end='')
+        elif self.operation_type == TypeLogicalOperation.GREATER_EQ:
+            print(' >= ', end='')
+        elif self.operation_type == TypeLogicalOperation.AND:
+            print(' && ', end='')
+        elif self.operation_type == TypeLogicalOperation.OR:
+            print(' || ', end='')
+        elif self.operation_type == TypeLogicalOperation.AND_ASSIGN:
+            print(' &&= ', end='')
+        elif self.operation_type == TypeLogicalOperation.OR_ASSIGN:
+            print(' ||= ', end='')
+        elif self.operation_type == TypeLogicalOperation.NULLISH:
+            print(' ?? ', end='')
+        elif self.operation_type == TypeLogicalOperation.NULLISH_ASSIGN:
+            print(' ??= ', end='')
+        elif self.operation_type == TypeLogicalOperation.NOT:
+            print(' ! ', end='')
+
+
+class Border(Atom):
+    def __init__(self):
+        pass
+
+    def print(self):
+        print(', ', end='')
+
+
+class Brackets(Atom):
+    def __init__(self, atoms):
+        self.atoms = atoms
+
+    def print(self):
+        print('(', end='')
+        for atom in self.atoms:
             atom.print()
         print(')', end='')
