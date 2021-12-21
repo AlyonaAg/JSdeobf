@@ -178,7 +178,8 @@ class Parser:
             return var, len(name)
         else:
             new_var = BaseClass.Var(name, Parser.__namespace)
-            repo.append_var([new_var])
+            if Parser.__namespace is not None:
+                repo.append_var([new_var])
             return new_var, len(name)
 
     @staticmethod
@@ -326,6 +327,13 @@ class Parser:
         else:
             call_func = BaseClass.CallFunc(BaseClass.Func(name), args)
 
+        if len(script) > finish_args and script[finish_args] == '.':
+            old_namespace = Parser.__namespace
+            Parser.__namespace = None
+            atom, shift = self.__getAtom(script[finish_args + 1:])
+            Parser.__namespace = old_namespace
+            return BaseClass.InstanceClass(call_func, atom), finish_args + shift + 1
+
         return call_func, finish_args
 
     def __getSwitchCommand(self, script):
@@ -353,11 +361,6 @@ class Parser:
             i += 1
 
         return BaseClass.SwitchCommand(command_type, condition, body), i
-
-    def __getInstanceClass(self, script):
-        instance = re.search(r'(\.|\()', script).start() + 1
-
-
 
     def __getAtom(self, script):
         if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script)) is not None:

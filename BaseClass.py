@@ -485,10 +485,12 @@ class New(Atom):
         print('new ', end='')
 
 
-class instanceClass(Atom):
+class InstanceClass(Atom):
     def __init__(self, instance, field):
         self.instance = instance
         self.field = field
 
     def print(self):
-        print('CLASS', end='')
+        self.instance.print()
+        print('.', end='')
+        self.field.print()
