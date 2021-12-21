@@ -296,6 +296,10 @@ class Parser:
     def __getBorder():
         return BaseClass.Border(), 1
 
+    @staticmethod
+    def __getNew():
+        return BaseClass.New(), len('new ')
+
     def __getArray(self, script):
         start_array = re.search(r'(\[)', script).start() + 1
         finish_array = start_array + self.__searchForBoundaries(script[start_array:], r'\[', r'\]')
@@ -317,9 +321,12 @@ class Parser:
         args = self.__getAtomList(script[start_args:finish_args - 1])
 
         repo = Repository.Repository()
-        repo.inc_used(name)
+        if (func := repo.search_func(name)) is not None:
+            call_func = BaseClass.CallFunc(func, args)
+        else:
+            call_func = BaseClass.CallFunc(BaseClass.Func(name), args)
 
-        return BaseClass.CallFunc(name, args), finish_args
+        return call_func, finish_args
 
     def __getSwitchCommand(self, script):
         if re.match(r'case[\W]', script) is not None:
@@ -360,6 +367,8 @@ class Parser:
             return self.__getCallFunc(script)
         elif re.match(r'((true)|(false)([^\w]|$))', script) is not None:
             return self.__getBool(script)
+        elif re.match(r'((new)([^\w]|$))', script) is not None:
+            return self.__getNew()
         elif (match := re.match(r'((\w+\.)*\w+([^\w]|$))', script)) is not None:
             return self.__getVar(match.group())
         elif (match := re.match(r'((\+=)|(-=)|(\*=)|(/=)|(\*\*=)|(%=))', script)) is not None:
@@ -372,7 +381,7 @@ class Parser:
             return self.__getBinOperation(match.group())
         elif (match := re.match(r'((==)|(!=)|(<=)|(>=)|(&&=)|(\|\|=)|(\?\?=))', script)) is not None:
             return self.__getLogicalOperation(match.group())
-        elif (match := re.match(r'"((!)|(<)|(>)|(&&)|(\|\|)|(\?\?))"gm', script)) is not None:
+        elif (match := re.match(r'((!)|(<)|(>)|(&&)|(\|\|)|(\?\?))', script)) is not None:
             return self.__getLogicalOperation(match.group())
         elif (match := re.match(r'((~)|(&)|(\|)|(\^))', script)) is not None:
             return self.__getBinOperation(match.group())

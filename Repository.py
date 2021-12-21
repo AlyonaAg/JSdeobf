@@ -24,8 +24,9 @@ class Repository:
                 return var
         return None
 
-    def inc_used(self, name):
+    def search_func(self, name):
         for func in self.__FuncDB.funcs:
             if name == func.name:
                 func.inc()
+                return func
 

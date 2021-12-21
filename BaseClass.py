@@ -86,7 +86,7 @@ class TypeLogicalOperation(Enum):
 
 # base instruction
 class Func(Instruction):
-    def __init__(self, name, args, locals_var=[], body=[]):
+    def __init__(self, name, args=[], locals_var=[], body=[]):
         self.__name = name
         self.__args = args
         self.__locals_var = locals_var
@@ -106,8 +106,11 @@ class Func(Instruction):
 
     def print(self):
         print(f'function {self.__name} (', end=' ')
-        for cond in self.__args:
-            cond.print()
+        if len(self.__args):
+            for cond in self.__args[:-1]:
+                cond.print()
+                print(end=', ')
+            self.__args[-1].print()
         print('){')
         for instr in self.__body:
             instr.print()
@@ -327,12 +330,12 @@ class Array(Atom):
 
 
 class CallFunc(Atom):
-    def __init__(self, name, args):
-        self.name = name
+    def __init__(self, func, args):
+        self.func = func
         self.args = args
 
     def print(self):
-        print(f'{self.name}(', end='')
+        print(f'{self.func.name}(', end='')
         for atom in self.args:
             atom.print()
         print(')', end='')
@@ -471,3 +474,12 @@ class Brackets(Atom):
         for atom in self.atoms:
             atom.print()
         print(')', end='')
+
+
+class New(Atom):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def print():
+        print('new ', end='')
