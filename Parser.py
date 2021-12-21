@@ -354,6 +354,11 @@ class Parser:
 
         return BaseClass.SwitchCommand(command_type, condition, body), i
 
+    def __getInstanceClass(self, script):
+        instance = re.search(r'(\.|\()', script).start() + 1
+
+
+
     def __getAtom(self, script):
         if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script)) is not None:
             return self.__getNumber(match.group())

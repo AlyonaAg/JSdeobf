@@ -483,3 +483,12 @@ class New(Atom):
     @staticmethod
     def print():
         print('new ', end='')
+
+
+class instanceClass(Atom):
+    def __init__(self, instance, field):
+        self.instance = instance
+        self.field = field
+
+    def print(self):
+        print('CLASS', end='')
