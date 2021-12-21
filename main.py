@@ -1,5 +1,5 @@
 from AST import AST
 
 if __name__ == '__main__':
-    ast = AST('script2_obf.js')
+    ast = AST('obf_test.js')
     ast.createAST()

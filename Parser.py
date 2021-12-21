@@ -29,6 +29,8 @@ class Parser:
         args = [BaseClass.Var(arg, Parser.__namespace)
                 for arg in declaration.group(2).split(sep=',')]
         locals_var = args
+        repo = Repository.Repository()
+        repo.append_var(args)
 
         body = []
         i = start
@@ -38,9 +40,6 @@ class Parser:
                 i += shift - 1
                 body.append(instr)
             i += 1
-
-        repo = Repository.Repository()
-        repo.append_var(args)
 
         Parser.__namespace = "__main"
 
@@ -362,6 +361,15 @@ class Parser:
 
         return BaseClass.SwitchCommand(command_type, condition, body), i
 
+    def __getInstanceClass(self, script):
+        old_namespace = Parser.__namespace
+        Parser.__namespace = None
+        start = re.search(r'\.', script).start()
+        instance, shift = self.__getAtom(script[:start])
+        atom, shift = self.__getAtom(script[start + 1:])
+        Parser.__namespace = old_namespace
+        return BaseClass.InstanceClass(instance, atom), start + shift + 1
+
     def __getAtom(self, script):
         if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script)) is not None:
             return self.__getNumber(match.group())
@@ -371,13 +379,15 @@ class Parser:
             return self.__getArray(script)
         elif re.match(r'\(', script) is not None:
             return self.__getBrackets(script)
-        elif re.match(r'((\w+\.)*\w+\s*\()', script) is not None:
+        elif re.match(r'(\w+\.)', script) is not None:
+            return self.__getInstanceClass(script)
+        elif re.match(r'(\w+\s*\()', script) is not None:
             return self.__getCallFunc(script)
         elif re.match(r'((true)|(false)([^\w]|$))', script) is not None:
             return self.__getBool(script)
         elif re.match(r'((new)([^\w]|$))', script) is not None:
             return self.__getNew()
-        elif (match := re.match(r'((\w+\.)*\w+([^\w]|$))', script)) is not None:
+        elif (match := re.match(r'(\w+([^\w]|$))', script)) is not None:
             return self.__getVar(match.group())
         elif (match := re.match(r'((\+=)|(-=)|(\*=)|(/=)|(\*\*=)|(%=))', script)) is not None:
             return self.__getArOperation(match.group())
@@ -493,5 +503,3 @@ class Parser:
                     shift += match.end() - 1
             shift += 1
         raise ValueError('[search_end_of_command]: symbol \';\' was not found')
-
-# TODO: atom = class.
