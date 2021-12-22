@@ -1,5 +1,4 @@
 import Parser
-import Repository
 
 
 class AST:
@@ -8,10 +7,14 @@ class AST:
             self.__script = f.read()
         self.__Tree = []
 
+    @property
+    def tree(self):
+        return self.__Tree
+
     def createAST(self):
         parser = Parser.Parser()
         self.__Tree = parser.parserAST(self.__script)
 
-        print(self.__Tree)
-        for AST in self.__Tree:
-            AST.print()
+    def print(self):
+        for instr in self.__Tree:
+            instr.print()

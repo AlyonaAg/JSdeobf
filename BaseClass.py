@@ -82,6 +82,10 @@ class TypeLogicalOperation(Enum):
     NULLISH = 11  # ??
     NULLISH_ASSIGN = 12  # ??=
     NOT = 13
+    TRIPLE_EQ = 14  # ===
+    TRIPLE_NE = 15  # !==
+    SHORT_IF = 16  # ?
+    SHORT_COND = 17  # :
 
 
 # base instruction
@@ -190,10 +194,13 @@ class Else(Instruction):
         self.__body = body
 
     def print(self):
-        print('else {')
+        print('else ')
+        if len(self.__body) > 1:
+            print('{')
         for instr in self.__body:
             instr.print()
-        print('}')
+        if len(self.__body) > 1:
+            print('}')
 
 
 class For(Instruction):
@@ -289,6 +296,10 @@ class Var(Atom):
     @property
     def name(self):
         return self.__name
+
+    @name.setter
+    def name(self, val):
+        self.__name = val
 
     @property
     def namespace(self):
@@ -455,6 +466,14 @@ class LogicalOperation(Atom):
             print(' ??= ', end='')
         elif self.operation_type == TypeLogicalOperation.NOT:
             print(' ! ', end='')
+        elif self.operation_type == TypeLogicalOperation.TRIPLE_EQ:
+            print(' === ', end='')
+        elif self.operation_type == TypeLogicalOperation.TRIPLE_NE:
+            print(' !== ', end='')
+        elif self.operation_type == TypeLogicalOperation.SHORT_IF:
+            print(' ? ', end='')
+        elif self.operation_type == TypeLogicalOperation.SHORT_COND:
+            print(' : ', end='')
 
 
 class Border(Atom):
