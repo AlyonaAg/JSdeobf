@@ -5,7 +5,7 @@ from enum import Enum
 
 
 class ProcessingAST:
-    class TypeElem(Enum):
+    class __TypeElem(Enum):
         INSTR = 1
         ATOMS = 2
 
@@ -17,10 +17,10 @@ class ProcessingAST:
         return self.__ast
 
     def processing(self):
-        self.__deleteUnusedFunction()
+        # self.__deleteUnusedFunction()
         self.__renameVar()
         self.__renameFunc()
-        self.__arithmeticSimplification(self.__ast, ProcessingAST.TypeElem.INSTR)
+        self.__arithmeticSimplification(self.__ast, ProcessingAST.__TypeElem.INSTR)
 
     def __deleteUnusedFunction(self):
         del_instr = []
@@ -31,63 +31,63 @@ class ProcessingAST:
             self.__ast.tree.remove(instr)
 
     def __arithmeticSimplification(self, elem, type_elem):
-        if type_elem is ProcessingAST.TypeElem.INSTR:
+        if type_elem is ProcessingAST.__TypeElem.INSTR:
             if isinstance(elem, AST.AST):
                 for instr in elem.tree:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.For):
-                self.__arithmeticSimplification(elem.init, ProcessingAST.TypeElem.ATOMS)
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
-                self.__arithmeticSimplification(elem.step, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.init, ProcessingAST.__TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.step, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.While):
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.DoWhile):
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.SwitchCommand):
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.If):
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.Switch):
-                self.__arithmeticSimplification(elem.conditions, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.conditions, ProcessingAST.__TypeElem.ATOMS)
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.Else):
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.Func):
                 for instr in elem.body:
-                    self.__arithmeticSimplification(instr, ProcessingAST.TypeElem.INSTR)
+                    self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
             elif isinstance(elem, BaseClass.Declaration):
-                self.__arithmeticSimplification(elem.body, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.body, ProcessingAST.__TypeElem.ATOMS)
             elif isinstance(elem, BaseClass.Return):
-                self.__arithmeticSimplification(elem.return_value, ProcessingAST.TypeElem.ATOMS)
+                self.__arithmeticSimplification(elem.return_value, ProcessingAST.__TypeElem.ATOMS)
             elif isinstance(elem, BaseClass.OtherInstruction):
-                self.__arithmeticSimplification(elem.atoms, ProcessingAST.TypeElem.ATOMS)
-        elif type_elem is ProcessingAST.TypeElem.ATOMS:
+                self.__arithmeticSimplification(elem.atoms, ProcessingAST.__TypeElem.ATOMS)
+        elif type_elem is ProcessingAST.__TypeElem.ATOMS:
             self.__searchArithSignature(elem)
             for atom in elem:
                 if isinstance(atom, BaseClass.InstanceClass):
                     if isinstance(atom.instance, BaseClass.CallFunc):
-                        self.__arithmeticSimplification(atom.instance.args, ProcessingAST.TypeElem.ATOMS)
+                        self.__arithmeticSimplification(atom.instance.args, ProcessingAST.__TypeElem.ATOMS)
                     if isinstance(atom.field, BaseClass.CallFunc):
-                        self.__arithmeticSimplification(atom.field.args, ProcessingAST.TypeElem.ATOMS)
+                        self.__arithmeticSimplification(atom.field.args, ProcessingAST.__TypeElem.ATOMS)
 
                 if isinstance(atom, BaseClass.CallFunc):
-                    self.__arithmeticSimplification(atom.args, ProcessingAST.TypeElem.ATOMS)
+                    self.__arithmeticSimplification(atom.args, ProcessingAST.__TypeElem.ATOMS)
                 if isinstance(atom, BaseClass.Brackets):
-                    self.__arithmeticSimplification(atom.atoms, ProcessingAST.TypeElem.ATOMS)
+                    self.__arithmeticSimplification(atom.atoms, ProcessingAST.__TypeElem.ATOMS)
                 if isinstance(atom, BaseClass.Array):
-                    self.__arithmeticSimplification(atom.atoms, ProcessingAST.TypeElem.ATOMS)
+                    self.__arithmeticSimplification(atom.atoms, ProcessingAST.__TypeElem.ATOMS)
             self.__searchEmptyBrackets(elem)
 
     def __searchArithSignature(self, atoms):

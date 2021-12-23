@@ -54,8 +54,7 @@ class Parser:
         finish = self.__searchEndOfCommand(script) + 1
 
         body = self.__getAtomList(script[3:finish])
-        var = []
-        return BaseClass.Declaration(declaration_type, body, var), finish
+        return BaseClass.Declaration(declaration_type, body), finish
 
     def __parserCycleControl(self, script):
         cycle_control_type = BaseClass.TypeCycleControl.CONTINUE if script.startswith(

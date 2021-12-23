@@ -1,5 +1,6 @@
 from AST import AST
 from ProcessingAST import ProcessingAST
+from PrintAST import PrintAST
 
 if __name__ == '__main__':
     ast = AST('obf_test.js')
@@ -7,4 +8,5 @@ if __name__ == '__main__':
     processing = ProcessingAST(ast)
     processing.processing()
 
-    ast.print()
+    print_ast = PrintAST(ast)
+    print_ast.print()
