@@ -81,6 +81,9 @@ class ProcessingAST:
                         self.__arithmeticSimplification(atom.instance.args, ProcessingAST.__TypeElem.ATOMS)
                     if isinstance(atom.field, BaseClass.CallFunc):
                         self.__arithmeticSimplification(atom.field.args, ProcessingAST.__TypeElem.ATOMS)
+                    if isinstance(atom.field, BaseClass.InstanceClass) and \
+                            isinstance(atom.field.instance, BaseClass.CallFunc):
+                        self.__arithmeticSimplification(atom.field.instance.args, ProcessingAST.__TypeElem.ATOMS)
 
                 if isinstance(atom, BaseClass.CallFunc):
                     self.__arithmeticSimplification(atom.args, ProcessingAST.__TypeElem.ATOMS)
