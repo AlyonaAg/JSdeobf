@@ -90,10 +90,9 @@ class TypeLogicalOperation(Enum):
 
 # base instruction
 class Func(Instruction):
-    def __init__(self, name, args=[], locals_var=[], body=[]):
+    def __init__(self, name, args=[], body=[]):
         self.__name = name
         self.__args = args
-        self.__locals_var = locals_var
         self.__body = body
         self.__cnt_reference = 0
 
@@ -102,14 +101,22 @@ class Func(Instruction):
         return self.__cnt_reference
 
     @property
+    def body(self):
+        return self.__body
+
+    @property
     def name(self):
         return self.__name
+
+    @name.setter
+    def name(self, val):
+        self.__name = val
 
     def inc(self):
         self.__cnt_reference += 1
 
     def print(self):
-        print(f'function {self.__name} (', end=' ')
+        print(f'function {self.__name}(', end='')
         if len(self.__args):
             for cond in self.__args[:-1]:
                 cond.print()
@@ -118,7 +125,7 @@ class Func(Instruction):
         print('){')
         for instr in self.__body:
             instr.print()
-        print('}')
+        print('}\n')
 
 
 class Declaration(Instruction):
@@ -126,6 +133,10 @@ class Declaration(Instruction):
         self.__body = body
         self.__var = var
         self.__type = declaration_type
+
+    @property
+    def body(self):
+        return self.__body
 
     def print(self):
         if self.__type is TypeDeclaration.VAR:
@@ -150,11 +161,15 @@ class CycleControl(Instruction):
 
 class Return(Instruction):
     def __init__(self, return_value=None):
-        self.return_value = return_value
+        self.__return_value = return_value
+
+    @property
+    def return_value(self):
+        return self.__return_value
 
     def print(self):
         print('return ', end='')
-        for atom in self.return_value:
+        for atom in self.__return_value:
             atom.print()
         print(';')
 
@@ -163,6 +178,14 @@ class While(Instruction):
     def __init__(self, conditions, body):
         self.__conditions = conditions
         self.__body = body
+
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def body(self):
+        return self.__body
 
     def print(self):
         print(f'while (', end='')
@@ -179,6 +202,14 @@ class If(Instruction):
         self.__conditions = conditions
         self.__body = body
 
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def body(self):
+        return self.__body
+
     def print(self):
         print(f'if (', end='')
         for atom in self.__conditions:
@@ -192,6 +223,10 @@ class If(Instruction):
 class Else(Instruction):
     def __init__(self, body):
         self.__body = body
+
+    @property
+    def body(self):
+        return self.__body
 
     def print(self):
         print('else ')
@@ -209,6 +244,22 @@ class For(Instruction):
         self.__conditions = conditions
         self.__step = step
         self.__body = body
+
+    @property
+    def init(self):
+        return self.__init
+
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def step(self):
+        return self.__step
+
+    @property
+    def body(self):
+        return self.__body
 
     def print(self):
         print(f'for (', end='')
@@ -231,6 +282,14 @@ class Switch(Instruction):
         self.__conditions = conditions
         self.__body = body
 
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def body(self):
+        return self.__body
+
     def print(self):
         print(f'switch (', end='')
         for atom in self.__conditions:
@@ -245,6 +304,14 @@ class DoWhile(Instruction):
     def __init__(self, conditions, body):
         self.__conditions = conditions
         self.__body = body
+
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def body(self):
+        return self.__body
 
     def print(self):
         print('do {')
@@ -262,6 +329,14 @@ class SwitchCommand(Instruction):
         self.__conditions = conditions
         self.__body = body
 
+    @property
+    def conditions(self):
+        return self.__conditions
+
+    @property
+    def body(self):
+        return self.__body
+
     def print(self):
         if self.switch_command_type is TypeSwitchCommand.CASE:
             print('case (', end='')
@@ -276,14 +351,18 @@ class SwitchCommand(Instruction):
 
 class OtherInstruction(Instruction):
     def __init__(self, atoms):
-        self.atoms = atoms
+        self.__atoms = atoms
+
+    @property
+    def atoms(self):
+        return self.__atoms
 
     def print(self):
-        if len(self.atoms):
-            for i in self.atoms:
+        if len(self.__atoms):
+            for i in self.__atoms:
                 i.print()
         else:
-            print(self.atoms, end='')
+            print(self.__atoms, end='')
         print(';')
 
 
@@ -315,38 +394,50 @@ class Var(Atom):
 
 class Number(Atom):
     def __init__(self, value):
-        self.value = value
+        self.__value = value
+
+    @property
+    def value(self):
+        return self.__value
 
     def print(self):
-        print(self.value, end='')
+        print(self.__value, end='')
 
 
 class String(Atom):
     def __init__(self, value):
-        self.value = value
+        self.__value = value
 
     def print(self):
-        print(self.value, end='')
+        print(self.__value, end='')
 
 
 class Array(Atom):
     def __init__(self, atoms):
-        self.atoms = atoms
+        self.__atoms = atoms
+
+    @property
+    def atoms(self):
+        return self.__atoms
 
     def print(self):
         print('[', end='')
-        for atom in self.atoms:
+        for atom in self.__atoms:
             atom.print()
         print(']', end='')
 
 
 class CallFunc(Atom):
     def __init__(self, func, args):
-        self.func = func
-        self.args = args
+        self.__func = func
+        self.__args = args
+
+    @property
+    def args(self):
+        return self.__args
 
     def print(self):
-        print(f'{self.func.name}(', end='')
+        print(f'{self.__func.name}(', end='')
         for atom in self.args:
             atom.print()
         print(')', end='')
@@ -354,10 +445,10 @@ class CallFunc(Atom):
 
 class Bool(Atom):
     def __init__(self, bool_type):
-        self.bool_type = bool_type
+        self.__bool_type = bool_type
 
     def print(self):
-        if self.bool_type == TypeBool.TRUE:
+        if self.__bool_type == TypeBool.TRUE:
             print('true', end='')
         else:
             print('false', end='')
@@ -365,38 +456,42 @@ class Bool(Atom):
 
 class ArithmeticOperation(Atom):
     def __init__(self, operation_type):
-        self.operation_type = operation_type
+        self.__operation_type = operation_type
+
+    @property
+    def operation_type(self):
+        return self.__operation_type
 
     def print(self):
-        if self.operation_type == TypeArithmeticOperation.ADD:
+        if self.__operation_type == TypeArithmeticOperation.ADD:
             print(' + ', end='')
-        elif self.operation_type == TypeArithmeticOperation.SUB:
+        elif self.__operation_type == TypeArithmeticOperation.SUB:
             print(' - ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MUL:
+        elif self.__operation_type == TypeArithmeticOperation.MUL:
             print(' * ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DIV:
+        elif self.__operation_type == TypeArithmeticOperation.DIV:
             print(' / ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MOD:
+        elif self.__operation_type == TypeArithmeticOperation.MOD:
             print(' % ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEG:
+        elif self.__operation_type == TypeArithmeticOperation.DEG:
             print(' ** ', end='')
-        elif self.operation_type == TypeArithmeticOperation.INC:
+        elif self.__operation_type == TypeArithmeticOperation.INC:
             print('++ ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEC:
+        elif self.__operation_type == TypeArithmeticOperation.DEC:
             print('-- ', end='')
-        elif self.operation_type == TypeArithmeticOperation.ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.ASSIGN:
             print(' = ', end='')
-        elif self.operation_type == TypeArithmeticOperation.ADD_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.ADD_ASSIGN:
             print(' += ', end='')
-        elif self.operation_type == TypeArithmeticOperation.SUB_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.SUB_ASSIGN:
             print(' -= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MUL_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.MUL_ASSIGN:
             print(' *= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DIV_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.DIV_ASSIGN:
             print(' /= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEG_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.DEG_ASSIGN:
             print(' **= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MOD_ASSIGN:
+        elif self.__operation_type == TypeArithmeticOperation.MOD_ASSIGN:
             print(' %= ', end='')
 
 
@@ -486,11 +581,15 @@ class Border(Atom):
 
 class Brackets(Atom):
     def __init__(self, atoms):
-        self.atoms = atoms
+        self.__atoms = atoms
+
+    @property
+    def atoms(self):
+        return self.__atoms
 
     def print(self):
         print('(', end='')
-        for atom in self.atoms:
+        for atom in self.__atoms:
             atom.print()
         print(')', end='')
 
@@ -506,10 +605,18 @@ class New(Atom):
 
 class InstanceClass(Atom):
     def __init__(self, instance, field):
-        self.instance = instance
-        self.field = field
+        self.__instance = instance
+        self.__field = field
+
+    @property
+    def instance(self):
+        return self.__instance
+
+    @property
+    def field(self):
+        return self.__field
 
     def print(self):
-        self.instance.print()
+        self.__instance.print()
         print('.', end='')
-        self.field.print()
+        self.__field.print()

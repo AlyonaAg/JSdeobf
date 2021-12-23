@@ -26,13 +26,18 @@ class Parser:
         name = declaration.group(1)
         Parser.__namespace = name
 
-        args = [BaseClass.Var(arg, Parser.__namespace)
-                for arg in declaration.group(2).split(sep=',')]
-        locals_var = args
+        args = []
         repo = Repository.Repository()
-        repo.append_var(args)
+        for arg in declaration.group(2).split(sep=','):
+            if (var := repo.search_var(arg)) is None:
+                var = BaseClass.Var(arg, Parser.__namespace)
+                repo.append_var([var])
+            args.append(var)
 
         body = []
+        func = BaseClass.Func(name, args, body)
+        repo.append_func(func)
+
         i = start
         while i < finish:
             instr, shift = self.__getInstruction(script[i:])
@@ -42,9 +47,6 @@ class Parser:
             i += 1
 
         Parser.__namespace = "__main"
-
-        func = BaseClass.Func(name, args, locals_var, body)
-        repo.append_func(func)
         return func, finish
 
     def __parserDeclaration(self, script):
@@ -173,7 +175,7 @@ class Parser:
             return BaseClass.Var(name), len(name)
 
         repo = Repository.Repository()
-        if (var := repo.search_var(name, Parser.__namespace)) is not None:
+        if (var := repo.search_var(name)) is not None:
             return var, len(name)
         else:
             new_var = BaseClass.Var(name, Parser.__namespace)

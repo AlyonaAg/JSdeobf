@@ -18,9 +18,9 @@ class Repository:
     def append_func(self, value):
         self.__FuncDB.append(value)
 
-    def search_var(self, name, namespace):
+    def search_var(self, name):
         for var in self.__VarDB.vars:
-            if name == var.name and namespace == var.namespace:
+            if name == var.name:
                 return var
         return None
 
