@@ -312,6 +312,9 @@ class PrintAST:
                     print('.', end='')
                     self.__printDFS([atom.field], PrintAST.__TypeElem.ATOMS)
 
+                else:
+                    self.__printDFS(atom, PrintAST.__TypeElem.INSTR)
+
     @staticmethod
     def __printShift():
         print('\t' * PrintAST.__shift, end='')

@@ -1,6 +1,7 @@
 import BaseClass
 import Repository
 import AST
+import Parser
 from enum import Enum
 
 
@@ -85,12 +86,19 @@ class ProcessingAST:
                             isinstance(atom.field.instance, BaseClass.CallFunc):
                         self.__arithmeticSimplification(atom.field.instance.args, ProcessingAST.__TypeElem.ATOMS)
 
-                if isinstance(atom, BaseClass.CallFunc):
-                    self.__arithmeticSimplification(atom.args, ProcessingAST.__TypeElem.ATOMS)
                 if isinstance(atom, BaseClass.Brackets):
                     self.__arithmeticSimplification(atom.atoms, ProcessingAST.__TypeElem.ATOMS)
                 if isinstance(atom, BaseClass.Array):
                     self.__arithmeticSimplification(atom.atoms, ProcessingAST.__TypeElem.ATOMS)
+                if isinstance(atom, BaseClass.Func):
+                    self.__arithmeticSimplification(atom, ProcessingAST.__TypeElem.INSTR)
+                if isinstance(atom, BaseClass.CallFunc):
+                    if atom.func.name == 'eval':
+                        self.__replaceEval(elem)
+                        for a in elem:
+                            self.__arithmeticSimplification(a, ProcessingAST.__TypeElem.INSTR)
+                    else:
+                        self.__arithmeticSimplification(atom.args, ProcessingAST.__TypeElem.ATOMS)
             self.__searchEmptyBrackets(elem)
 
     def __searchArithSignature(self, atoms):
@@ -130,6 +138,24 @@ class ProcessingAST:
                 if len(atoms[i].atoms) == 1:
                     self.__deleteBrackets(atoms, i)
             i += 1
+
+    def __replaceEval(self, atoms):
+        for index, elem in enumerate(atoms):
+            if isinstance(elem, BaseClass.CallFunc) and elem.func.name == 'eval':
+                args = elem.args[0].value
+                args = args[1:-1]
+                if args.startswith('(') and args.endswith(')'):
+                    args = args[1:-1]
+                args = args.replace('\\"', '"')
+                args = args.replace('\\\'', '\'')
+
+                parser = Parser.Parser()
+                new_instr = parser.parserAST(args)
+
+                for instr in new_instr[::-1]:
+                    atoms.pop(index)
+                    atoms.insert(index, instr)
+                break
 
     @staticmethod
     def __replaceSignature(atoms, index, type_operation):
