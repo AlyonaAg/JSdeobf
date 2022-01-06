@@ -3,6 +3,8 @@ import BaseClass
 import AST
 
 
+# TODO: add 'const'
+
 class PrintAST:
     class __TypeElem(Enum):
         INSTR = 1
@@ -117,7 +119,10 @@ class PrintAST:
                     print('}')
 
             elif isinstance(elem, BaseClass.Func):
-                print(f'function {elem.name}(', end='')
+                print('function ', end='')
+                if elem.name is not None:
+                    print(f'{elem.name}', end='')
+                print('(', end='')
                 if len(elem.args):
                     for arg in elem.args[:-1]:
                         self.__printDFS([arg], PrintAST.__TypeElem.ATOMS)
@@ -128,7 +133,9 @@ class PrintAST:
                 for instr in elem.body:
                     self.__printDFS(instr, PrintAST.__TypeElem.INSTR)
                 self.__decShift()
-                print('}\n')
+                print('}', end='')
+                if elem.name is not None:
+                    print('\n')
 
             elif isinstance(elem, BaseClass.Declaration):
                 if elem.type is BaseClass.TypeDeclaration.VAR:
@@ -157,7 +164,10 @@ class PrintAST:
 
         elif type_elem is PrintAST.__TypeElem.ATOMS:
             for atom in elem:
-                if isinstance(atom, BaseClass.Var):
+                if isinstance(atom, BaseClass.Func):
+                    self.__printDFS(atom, PrintAST.__TypeElem.INSTR)
+
+                elif isinstance(atom, BaseClass.Var):
                     print(atom.name, end='')
 
                 elif isinstance(atom, BaseClass.Number):
@@ -171,6 +181,12 @@ class PrintAST:
 
                 elif isinstance(atom, BaseClass.New):
                     print('new ', end='')
+
+                elif isinstance(atom, BaseClass.Const):
+                    print('const ', end='')
+
+                elif isinstance(atom, BaseClass.Infinity):
+                    print('Infinity', end='')
 
                 elif isinstance(atom, BaseClass.Bool):
                     if atom.bool_type == BaseClass.TypeBool.TRUE:
@@ -276,7 +292,7 @@ class PrintAST:
                     elif atom.operation_type == BaseClass.TypeLogicalOperation.NULLISH_ASSIGN:
                         print(' ??= ', end='')
                     elif atom.operation_type == BaseClass.TypeLogicalOperation.NOT:
-                        print(' !', end='')
+                        print('!', end='')
                     elif atom.operation_type == BaseClass.TypeLogicalOperation.TRIPLE_EQ:
                         print(' === ', end='')
                     elif atom.operation_type == BaseClass.TypeLogicalOperation.TRIPLE_NE:
@@ -295,6 +311,9 @@ class PrintAST:
                     self.__printDFS([atom.instance], PrintAST.__TypeElem.ATOMS)
                     print('.', end='')
                     self.__printDFS([atom.field], PrintAST.__TypeElem.ATOMS)
+
+                else:
+                    self.__printDFS(atom, PrintAST.__TypeElem.INSTR)
 
     @staticmethod
     def __printShift():

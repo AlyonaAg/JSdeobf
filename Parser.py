@@ -23,20 +23,27 @@ class Parser:
         finish = start + self.__searchForBoundaries(script[start + 1:], '[{]', '[}]') + 1
         declaration = re.match(r'function ([a-zA-Z_]\w+)\((.*?)\)', script)
 
-        name = declaration.group(1)
+        if declaration is not None:
+            name = declaration.group(1)
+        else:
+            name = declaration
         Parser.__namespace = name
 
         args = []
         repo = Repository.Repository()
-        for arg in declaration.group(2).split(sep=','):
-            if (var := repo.search_var(arg)) is None:
-                var = BaseClass.Var(arg, Parser.__namespace)
-                repo.append_var([var])
-            args.append(var)
+        if declaration is not None:
+            for arg in declaration.group(2).split(sep=','):
+                if (var := repo.search_var(arg)) is None:
+                    var = BaseClass.Var(arg, Parser.__namespace)
+                    repo.append_var([var])
+                args.append(var)
+        else:
+            args = []
 
         body = []
         func = BaseClass.Func(name, args, body)
-        repo.append_func(func)
+        if func.name is not None:
+            repo.append_func(func)
 
         i = start
         while i < finish:
@@ -149,11 +156,11 @@ class Parser:
 
         if '.' in str_value:
             value = float(str_value)
-        elif script.startswith('0x'):
+        elif script.startswith('0x') or script.startswith('0X'):
             value = int(str_value, base=16)
-        elif script.startswith('0o'):
+        elif script.startswith('0o') or script.startswith('0O'):
             value = int(str_value, base=8)
-        elif script.startswith('0b'):
+        elif script.startswith('0b') or script.startswith('0B'):
             value = int(str_value, base=2)
         else:
             value = int(str_value)
@@ -309,6 +316,14 @@ class Parser:
     def __getNew():
         return BaseClass.New(), len('new ')
 
+    @staticmethod
+    def __getConst():
+        return BaseClass.Const(), len('const ')
+
+    @staticmethod
+    def __getInfinity():
+        return BaseClass.Infinity(), len('Infinity')
+
     def __getArray(self, script):
         start_array = re.search(r'(\[)', script).start() + 1
         finish_array = start_array + self.__searchForBoundaries(script[start_array:], r'\[', r'\]')
@@ -380,7 +395,8 @@ class Parser:
         return BaseClass.InstanceClass(instance, atom), start + shift + 1
 
     def __getAtom(self, script):
-        if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script)) is not None:
+        if (match := re.match(r'(((0o[0-7]+)|(0x[\dabcdef]+)|(0b[0-1]+)|(\d+(\.\d+)*))([^\w]|$))', script,
+                              re.IGNORECASE)) is not None:
             return self.__getNumber(match.group())
         elif (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")', script)) is not None:
             return self.__getString(match.group())
@@ -388,6 +404,8 @@ class Parser:
             return self.__getArray(script)
         elif re.match(r'\(', script) is not None:
             return self.__getBrackets(script)
+        elif re.match(r'function[\W]', script) is not None:
+            return self.__parserFunc(script)
         elif re.match(r'([\w\$]+\.)', script) is not None:
             return self.__getInstanceClass(script)
         elif re.match(r'([\w\$]+\s*\()', script) is not None:
@@ -396,6 +414,10 @@ class Parser:
             return self.__getBool(script)
         elif re.match(r'((new)([^\w\$]|$))', script) is not None:
             return self.__getNew()
+        elif re.match(r'((const)([^\w\$]|$))', script) is not None:
+            return self.__getConst()
+        elif re.match(r'((Infinity)([^\w\$]|$))', script) is not None:
+            return self.__getInfinity()
         elif (match := re.match(r'([\w\$]+([^\w\$]|$))', script)) is not None:
             return self.__getVar(match.group())
         elif (match := re.match(r'((\+=)|(-=)|(\*=)|(/=)|(\*\*=)|(%=))', script)) is not None:
@@ -446,7 +468,7 @@ class Parser:
             return self.__parserSwitch(script)
         elif re.match(r'do[\W]', script) is not None:
             return self.__parserDoWhile(script)
-        elif re.match(r'[\w\$]', script) is not None:
+        elif re.match(r'[\w\$\!]', script) is not None:
             return self.__parserOtherInstruction(script)
         return None, 0
 
@@ -507,7 +529,7 @@ class Parser:
     def __searchEndOfCommand(script):
         shift = 0
         while shift < len(script):
-            if (match := re.match(r'(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(;)', script[shift:])) is not None:
+            if (match := re.match(r'(\{((\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|.)+?\})|(\'(\\\'|.)*?\'|\"(\\\"|.)*?\")|(;)', script[shift:])) is not None:
                 if match.group() == ';':
                     return shift
                 else:

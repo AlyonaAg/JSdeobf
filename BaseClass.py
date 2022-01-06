@@ -232,3 +232,13 @@ class InstanceClass(Atom):
     def __init__(self, instance, field):
         self.instance = instance
         self.field = field
+
+
+class Const(Atom):
+    def __init__(self):
+        pass
+
+
+class Infinity(Atom):
+    def __init__(self):
+        pass

@@ -3,7 +3,7 @@ from ProcessingAST import ProcessingAST
 from PrintAST import PrintAST
 
 if __name__ == '__main__':
-    ast = AST('obf_test.js')
+    ast = AST('jsTool.js')
     ast.createAST()
     processing = ProcessingAST(ast)
     processing.processing()
