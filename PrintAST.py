@@ -3,8 +3,6 @@ import BaseClass
 import AST
 
 
-# TODO: add 'const'
-
 class PrintAST:
     class __TypeElem(Enum):
         INSTR = 1
