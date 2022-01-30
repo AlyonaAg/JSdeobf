@@ -82,251 +82,109 @@ class TypeLogicalOperation(Enum):
     NULLISH = 11  # ??
     NULLISH_ASSIGN = 12  # ??=
     NOT = 13
+    TRIPLE_EQ = 14  # ===
+    TRIPLE_NE = 15  # !==
+    SHORT_IF = 16  # ?
+    SHORT_COND = 17  # :
 
 
 # base instruction
 class Func(Instruction):
-    def __init__(self, name, args=[], locals_var=[], body=[]):
-        self.__name = name
-        self.__args = args
-        self.__locals_var = locals_var
-        self.__body = body
-        self.__cnt_reference = 0
-
-    @property
-    def cnt_reference(self):
-        return self.__cnt_reference
-
-    @property
-    def name(self):
-        return self.__name
+    def __init__(self, name, args=[], body=[]):
+        self.name = name
+        self.args = args
+        self.body = body
+        self.cnt_reference = 0
 
     def inc(self):
-        self.__cnt_reference += 1
-
-    def print(self):
-        print(f'function {self.__name} (', end=' ')
-        if len(self.__args):
-            for cond in self.__args[:-1]:
-                cond.print()
-                print(end=', ')
-            self.__args[-1].print()
-        print('){')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.cnt_reference += 1
 
 
 class Declaration(Instruction):
-    def __init__(self, declaration_type, body=[], var=[]):
-        self.__body = body
-        self.__var = var
-        self.__type = declaration_type
-
-    def print(self):
-        if self.__type is TypeDeclaration.VAR:
-            print('var ', end='')
-        else:
-            print('let ', end='')
-        for atom in self.__body:
-            atom.print()
-        print(';')
+    def __init__(self, declaration_type, body=[]):
+        self.body = body
+        self.type = declaration_type
 
 
 class CycleControl(Instruction):
     def __init__(self, type_cycle_control):
-        self.__type = type_cycle_control
-
-    def print(self):
-        if self.__type is TypeCycleControl.CONTINUE:
-            print('continue;')
-        else:
-            print('break;')
+        self.type = type_cycle_control
 
 
 class Return(Instruction):
     def __init__(self, return_value=None):
         self.return_value = return_value
 
-    def print(self):
-        print('return ', end='')
-        for atom in self.return_value:
-            atom.print()
-        print(';')
-
 
 class While(Instruction):
     def __init__(self, conditions, body):
-        self.__conditions = conditions
-        self.__body = body
-
-    def print(self):
-        print(f'while (', end='')
-        for atom in self.__conditions:
-            atom.print()
-        print('){')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.conditions = conditions
+        self.body = body
 
 
 class If(Instruction):
     def __init__(self, conditions, body):
-        self.__conditions = conditions
-        self.__body = body
-
-    def print(self):
-        print(f'if (', end='')
-        for atom in self.__conditions:
-            atom.print()
-        print('){')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.conditions = conditions
+        self.body = body
 
 
 class Else(Instruction):
     def __init__(self, body):
-        self.__body = body
-
-    def print(self):
-        print('else {')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.body = body
 
 
 class For(Instruction):
     def __init__(self, init, conditions, step, body):
-        self.__init = init
-        self.__conditions = conditions
-        self.__step = step
-        self.__body = body
-
-    def print(self):
-        print(f'for (', end='')
-        for atom in self.__init:
-            atom.print()
-        print('; ', end='')
-        for atom in self.__conditions:
-            atom.print()
-        print('; ', end='')
-        for atom in self.__step:
-            atom.print()
-        print('){')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.init = init
+        self.conditions = conditions
+        self.step = step
+        self.body = body
 
 
 class Switch(Instruction):
     def __init__(self, conditions, body):
-        self.__conditions = conditions
-        self.__body = body
-
-    def print(self):
-        print(f'switch (', end='')
-        for atom in self.__conditions:
-            atom.print()
-        print('){')
-        for instr in self.__body:
-            instr.print()
-        print('}')
+        self.conditions = conditions
+        self.body = body
 
 
 class DoWhile(Instruction):
     def __init__(self, conditions, body):
-        self.__conditions = conditions
-        self.__body = body
-
-    def print(self):
-        print('do {')
-        for instr in self.__body:
-            instr.print()
-        print('} while (', end='')
-        for atom in self.__conditions:
-            atom.print()
-        print(');')
+        self.conditions = conditions
+        self.body = body
 
 
 class SwitchCommand(Instruction):
     def __init__(self, switch_command_type, conditions, body):
         self.switch_command_type = switch_command_type
-        self.__conditions = conditions
-        self.__body = body
-
-    def print(self):
-        if self.switch_command_type is TypeSwitchCommand.CASE:
-            print('case (', end='')
-            for atom in self.__conditions:
-                atom.print()
-            print('):')
-        else:
-            print('default:')
-        for instr in self.__body:
-            instr.print()
+        self.conditions = conditions
+        self.body = body
 
 
 class OtherInstruction(Instruction):
     def __init__(self, atoms):
         self.atoms = atoms
 
-    def print(self):
-        if len(self.atoms):
-            for i in self.atoms:
-                i.print()
-        else:
-            print(self.atoms, end='')
-        print(';')
-
 
 # base atom
 class Var(Atom):
     def __init__(self, name, namespace='__main'):
-        self.__name = name
-        self.__namespace = namespace
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def namespace(self):
-        return self.__namespace
-
-    @name.setter
-    def name(self, value):
-        self.__name = value
-
-    def print(self):
-        print(self.__name, end='')
+        self.name = name
+        self.namespace = namespace
 
 
 class Number(Atom):
     def __init__(self, value):
         self.value = value
 
-    def print(self):
-        print(self.value, end='')
-
 
 class String(Atom):
     def __init__(self, value):
         self.value = value
 
-    def print(self):
-        print(self.value, end='')
-
 
 class Array(Atom):
     def __init__(self, atoms):
         self.atoms = atoms
-
-    def print(self):
-        print('[', end='')
-        for atom in self.atoms:
-            atom.print()
-        print(']', end='')
 
 
 class CallFunc(Atom):
@@ -334,152 +192,53 @@ class CallFunc(Atom):
         self.func = func
         self.args = args
 
-    def print(self):
-        print(f'{self.func.name}(', end='')
-        for atom in self.args:
-            atom.print()
-        print(')', end='')
-
 
 class Bool(Atom):
     def __init__(self, bool_type):
         self.bool_type = bool_type
-
-    def print(self):
-        if self.bool_type == TypeBool.TRUE:
-            print('true', end='')
-        else:
-            print('false', end='')
 
 
 class ArithmeticOperation(Atom):
     def __init__(self, operation_type):
         self.operation_type = operation_type
 
-    def print(self):
-        if self.operation_type == TypeArithmeticOperation.ADD:
-            print(' + ', end='')
-        elif self.operation_type == TypeArithmeticOperation.SUB:
-            print(' - ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MUL:
-            print(' * ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DIV:
-            print(' / ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MOD:
-            print(' % ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEG:
-            print(' ** ', end='')
-        elif self.operation_type == TypeArithmeticOperation.INC:
-            print('++ ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEC:
-            print('-- ', end='')
-        elif self.operation_type == TypeArithmeticOperation.ASSIGN:
-            print(' = ', end='')
-        elif self.operation_type == TypeArithmeticOperation.ADD_ASSIGN:
-            print(' += ', end='')
-        elif self.operation_type == TypeArithmeticOperation.SUB_ASSIGN:
-            print(' -= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MUL_ASSIGN:
-            print(' *= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DIV_ASSIGN:
-            print(' /= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.DEG_ASSIGN:
-            print(' **= ', end='')
-        elif self.operation_type == TypeArithmeticOperation.MOD_ASSIGN:
-            print(' %= ', end='')
-
 
 class BinaryOperation(Atom):
     def __init__(self, operation_type):
         self.operation_type = operation_type
-
-    def print(self):
-        if self.operation_type == TypeBinaryOperation.LEFT_SHIFT:
-            print(' << ', end='')
-        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT:
-            print(' >> ', end='')
-        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_FILL:
-            print(' >>> ', end='')
-        elif self.operation_type == TypeBinaryOperation.NOT:
-            print(' ~ ', end='')
-        elif self.operation_type == TypeBinaryOperation.AND:
-            print(' & ', end='')
-        elif self.operation_type == TypeBinaryOperation.OR:
-            print(' | ', end='')
-        elif self.operation_type == TypeBinaryOperation.XOR:
-            print(' ^ ', end='')
-        elif self.operation_type == TypeBinaryOperation.LEFT_SHIFT_ASSIGN:
-            print(' >>= ', end='')
-        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_ASSIGN:
-            print(' <<= ', end='')
-        elif self.operation_type == TypeBinaryOperation.RIGHT_SHIFT_FILL_ASSIGN:
-            print(' >>>= ', end='')
-        elif self.operation_type == TypeBinaryOperation.NOT_ASSIGN:
-            print(' ~= ', end='')
-        elif self.operation_type == TypeBinaryOperation.AND_ASSIGN:
-            print(' &= ', end='')
-        elif self.operation_type == TypeBinaryOperation.OR_ASSIGN:
-            print(' |= ', end='')
-        elif self.operation_type == TypeBinaryOperation.XOR_ASSIGN:
-            print(' ^= ', end='')
 
 
 class LogicalOperation(Atom):
     def __init__(self, operation_type):
         self.operation_type = operation_type
 
-    def print(self):
-        if self.operation_type == TypeLogicalOperation.EQ:
-            print(' == ', end='')
-        elif self.operation_type == TypeLogicalOperation.NE:
-            print(' != ', end='')
-        elif self.operation_type == TypeLogicalOperation.LESS:
-            print(' < ', end='')
-        elif self.operation_type == TypeLogicalOperation.GREATER:
-            print(' > ', end='')
-        elif self.operation_type == TypeLogicalOperation.LESS_EQ:
-            print(' <= ', end='')
-        elif self.operation_type == TypeLogicalOperation.GREATER_EQ:
-            print(' >= ', end='')
-        elif self.operation_type == TypeLogicalOperation.AND:
-            print(' && ', end='')
-        elif self.operation_type == TypeLogicalOperation.OR:
-            print(' || ', end='')
-        elif self.operation_type == TypeLogicalOperation.AND_ASSIGN:
-            print(' &&= ', end='')
-        elif self.operation_type == TypeLogicalOperation.OR_ASSIGN:
-            print(' ||= ', end='')
-        elif self.operation_type == TypeLogicalOperation.NULLISH:
-            print(' ?? ', end='')
-        elif self.operation_type == TypeLogicalOperation.NULLISH_ASSIGN:
-            print(' ??= ', end='')
-        elif self.operation_type == TypeLogicalOperation.NOT:
-            print(' ! ', end='')
-
 
 class Border(Atom):
     def __init__(self):
         pass
-
-    def print(self):
-        print(', ', end='')
 
 
 class Brackets(Atom):
     def __init__(self, atoms):
         self.atoms = atoms
 
-    def print(self):
-        print('(', end='')
-        for atom in self.atoms:
-            atom.print()
-        print(')', end='')
-
 
 class New(Atom):
     def __init__(self):
         pass
 
-    @staticmethod
-    def print():
-        print('new ', end='')
+
+class InstanceClass(Atom):
+    def __init__(self, instance, field):
+        self.instance = instance
+        self.field = field
+
+
+class Const(Atom):
+    def __init__(self):
+        pass
+
+
+class Infinity(Atom):
+    def __init__(self):
+        pass
