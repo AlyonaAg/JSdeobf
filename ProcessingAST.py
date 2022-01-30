@@ -18,7 +18,7 @@ class ProcessingAST:
         return self.__ast
 
     def processing(self):
-        self.__deleteUnusedFunction()
+        # self.__deleteUnusedFunction()
         self.__renameVar()
         self.__renameFunc()
         self.__arithmeticSimplification(self.__ast, ProcessingAST.__TypeElem.INSTR)

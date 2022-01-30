@@ -14,7 +14,3 @@ class AST:
     def createAST(self):
         parser = Parser.Parser()
         self.__Tree = parser.parserAST(self.__script)
-
-    def print(self):
-        for instr in self.__Tree:
-            instr.print()

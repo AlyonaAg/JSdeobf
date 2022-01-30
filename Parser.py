@@ -41,7 +41,11 @@ class Parser:
             args = []
 
         body = []
-        func = BaseClass.Func(name, args, body)
+        if (func := repo.search_func(name)) is not None:
+            func.body = body
+        else:
+            func = BaseClass.Func(name, args, body)
+
         if func.name is not None:
             repo.append_func(func)
 
@@ -348,7 +352,9 @@ class Parser:
         if (func := repo.search_func(name)) is not None:
             call_func = BaseClass.CallFunc(func, args)
         else:
-            call_func = BaseClass.CallFunc(BaseClass.Func(name), args)
+            func = BaseClass.Func(name)
+            repo.append_func(func)
+            call_func = BaseClass.CallFunc(func, args)
 
         if len(script) > finish_args and script[finish_args] == '.':
             old_namespace = Parser.__namespace
