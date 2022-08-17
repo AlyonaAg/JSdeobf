@@ -11,6 +11,10 @@ class AST:
     def tree(self):
         return self.__Tree
 
+    @property
+    def script(self):
+        return self.__script
+
     def createAST(self):
         parser = Parser.Parser()
         self.__Tree = parser.parserAST(self.__script)

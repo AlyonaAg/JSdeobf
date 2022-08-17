@@ -3,7 +3,7 @@ from ProcessingAST import ProcessingAST
 from PrintAST import PrintAST
 
 if __name__ == '__main__':
-    ast = AST('1.js')
+    ast = AST('malware1.js')
     ast.createAST()
     processing = ProcessingAST(ast)
     processing.processing()
