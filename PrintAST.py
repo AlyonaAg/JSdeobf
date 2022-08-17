@@ -170,10 +170,7 @@ class PrintAST:
             opts.keep_array_indentation = True
             opts.keep_function_indentation = True
             opts.indent_with_tabs = True
-            opts.space_in_paren = True
             opts.jslint_happy = True
-            opts.space_after_anon_function = True
-            opts.space_after_named_function = True
             opts.eval_code = True
             opts.unescape_strings = True
             opts.comma_first = True

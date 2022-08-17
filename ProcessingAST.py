@@ -18,7 +18,7 @@ class ProcessingAST:
         return self.__ast
 
     def processing(self):
-        # self.__deleteUnusedFunction()
+        self.__deleteUnusedFunction()
         self.__renameVar()
         self.__renameFunc()
         self.__arithmeticSimplification(self.__ast, ProcessingAST.__TypeElem.INSTR)
@@ -33,6 +33,7 @@ class ProcessingAST:
 
     def __arithmeticSimplification(self, elem, type_elem):
         if type_elem is ProcessingAST.__TypeElem.INSTR:
+            self.__removeDeadCode(elem)
             if isinstance(elem, AST.AST):
                 for instr in elem.tree:
                     self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
@@ -156,6 +157,69 @@ class ProcessingAST:
                     atoms.pop(index)
                     atoms.insert(index, instr)
                 break
+
+    def __removeDeadCode(self, elem):
+        conditions = []
+        alwaysTrue = False
+
+        if isinstance(elem, BaseClass.If):
+            conditions = self.__splitOperation(elem.conditions)
+        elif isinstance(elem, BaseClass.For):
+            conditions = self.__splitOperation(elem.conditions)
+        elif isinstance(elem, BaseClass.While):
+            conditions = self.__splitOperation(elem.conditions)
+        elif isinstance(elem, BaseClass.DoWhile):
+            conditions = self.__splitOperation(elem.conditions)
+        
+        for cond in conditions:
+            if len(cond) == 3:
+                if self.__checkAlwaysTrueOperation():
+                    alwaysTrue = True
+                    break
+            
+        if alwaysTrue:
+            elem = []
+
+    @staticmethod
+    def __checkAlwaysTrueOperation(operation1, operation_type=None, operation2=None):
+        if operation_type is None and operation2 is None:
+            if operation1 == BaseClass.TypeBool.TRUE or \
+               (isinstance(operation1, BaseClass.Number) and operation1.value) or \
+                isinstance(operation1, BaseClass.String):
+                return True
+        else:
+            if (operation1.value == operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.EQ)) or \
+                (operation1.value != operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.NE)) or \
+                (operation1.value < operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.LESS)) or \
+                (operation1.value > operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.GREATER)) or \
+                (operation1.value <= operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.LESS_EQ)) or \
+                (operation1.value >= operation2.value and 
+                    isinstance(operation_type, BaseClass.TypeLogicalOperation.GREATER_EQ)):
+                return True
+
+        return False
+        
+
+    @staticmethod
+    def __splitOperation(condition):
+        conditions = []
+        tempCondition = []
+
+        for elem in condition:
+            if isinstance(elem, BaseClass.TypeLogicalOperation.AND) or \
+               isinstance(elem, BaseClass.TypeLogicalOperation.OR):
+                conditions.append(tempCondition)
+                tempCondition = []
+                continue
+            tempCondition.append(elem)
+
+        return conditions
+
 
     @staticmethod
     def __replaceSignature(atoms, index, type_operation):
