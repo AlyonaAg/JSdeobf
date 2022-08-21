@@ -175,7 +175,7 @@ class PrintAST:
             opts.unescape_strings = True
             opts.comma_first = True
             opts.end_with_newline = True
-            res = beautify_file('malware1.js', opts)
+            res = beautify_file((self.__ast.filename), opts)
             print(res)
 
         elif type_elem is PrintAST.__TypeElem.ATOMS:

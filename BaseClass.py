@@ -167,9 +167,10 @@ class OtherInstruction(Instruction):
 
 # base atom
 class Var(Atom):
-    def __init__(self, name, namespace='__main'):
+    def __init__(self, name, namespace='__main', value=None):
         self.name = name
         self.namespace = namespace
+        self.value = value
 
 
 class Number(Atom):

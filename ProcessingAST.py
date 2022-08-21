@@ -21,7 +21,7 @@ class ProcessingAST:
         self.__deleteUnusedFunction()
         self.__renameVar()
         self.__renameFunc()
-        self.__arithmeticSimplification(self.__ast, ProcessingAST.__TypeElem.INSTR)
+        # self.__arithmeticSimplification(self.__ast, ProcessingAST.__TypeElem.INSTR)
 
     def __deleteUnusedFunction(self):
         del_instr = []
@@ -34,6 +34,7 @@ class ProcessingAST:
     def __arithmeticSimplification(self, elem, type_elem):
         if type_elem is ProcessingAST.__TypeElem.INSTR:
             self.__removeDeadCode(elem)
+            self.__replaceCall(elem)
             if isinstance(elem, AST.AST):
                 for instr in elem.tree:
                     self.__arithmeticSimplification(instr, ProcessingAST.__TypeElem.INSTR)
@@ -179,6 +180,21 @@ class ProcessingAST:
             
         if alwaysTrue:
             elem = []
+
+
+    def __replaceCall(self, elem):
+        if isinstance(elem, BaseClass.Func):
+            for e in elem.body:
+                if isinstance(e, BaseClass.Return) and len(e.return_value) > 1:
+                    if isinstance(e.return_value[1], BaseClass.Number) or \
+                        isinstance(e.return_value[1], BaseClass.String):
+                            return
+                            self.__replaceAllReferences(elem.name)
+
+    
+    def __fillVarValue():
+        pass 
+
 
     @staticmethod
     def __checkAlwaysTrueOperation(operation1, operation_type=None, operation2=None):

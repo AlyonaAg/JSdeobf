@@ -6,6 +6,7 @@ class AST:
         with open(filename, 'r') as f:
             self.__script = f.read()
         self.__Tree = []
+        self.filename = filename
 
     @property
     def tree(self):
