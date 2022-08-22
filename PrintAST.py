@@ -1,6 +1,9 @@
 from enum import Enum
 import BaseClass
 import AST
+import re
+import zlib
+import base64
 from jsbeautifier import default_options, beautify_file
 
 
@@ -166,17 +169,21 @@ class PrintAST:
                     print('break;', file=self.__file)
 
         elif type_elem is None:
-            opts = default_options()
-            opts.keep_array_indentation = True
-            opts.keep_function_indentation = True
-            opts.indent_with_tabs = True
-            opts.jslint_happy = True
-            opts.eval_code = True
-            opts.unescape_strings = True
-            opts.comma_first = True
-            opts.end_with_newline = True
-            res = beautify_file((self.__ast.filename), opts)
-            print(res)
+            result = re.findall(r'(strt=\"([^\"]+)\")', self.__ast.script)
+            if len(result):
+                print(zlib.decompress(base64.b64decode(bytes(result[0][1], encoding='utf8'))).decode("utf-8"))
+            else:
+                opts = default_options()
+                opts.keep_array_indentation = True
+                opts.keep_function_indentation = True
+                opts.indent_with_tabs = True
+                opts.jslint_happy = True
+                opts.eval_code = True
+                opts.unescape_strings = True
+                opts.comma_first = True
+                opts.end_with_newline = True
+                res = beautify_file((self.__ast.filename), opts)
+                print(res)
 
         elif type_elem is PrintAST.__TypeElem.ATOMS:
             for atom in elem:
